@@ -1,0 +1,42 @@
+# Xcode
+.derivedData/
+DerivedData/
+build/
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+xcuserdata/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Release staging (local)
+dist/
+release/
+*.app.zip
+ZPRT-Connection-*.zip
+ZPRT-Connection-*.dmg
+*.dmg
+
+# IDE / tools
+.idea/
+.vscode/
+*.swp
+*~
+.cursor/
