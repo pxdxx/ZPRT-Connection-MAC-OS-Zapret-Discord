@@ -79,3 +79,7 @@ open "/tmp/ZPRTBuild/Build/Products/Release/ZPRT Connection.app"
 ## Disclaimer
 
 Используйте в соответствии с законодательством вашей страны. Автор не несёт ответственности за неправомерное применение.
+
+## Tegsss
+
+Zapret Discord Mac запрет дискорд macos zapret-discord для macOS запрет дискорд мак ос
