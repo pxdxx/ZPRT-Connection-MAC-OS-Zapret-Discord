@@ -8,7 +8,7 @@
 
 На Mac обычный Zapret / zapret-discord почти нереально поставить «из коробки»: нет удобного установщика, куча ручной возни с PF/скриптами, а часть Windows/Linux-сборок на macOS просто не ставится. Этот репозиторий закрывает эту дыру — готовое приложение с движком внутри, установка в один клик **GO**.
 
-> Developer: [@pxdx](https://github.com/pxdxx)
+> Developer: [@pxdxz](https://t.me/pxdxz)
 
 <p align="center">
   <img src="docs/screenshot.jpg" alt="ZPRT Connection screenshot" width="420">
