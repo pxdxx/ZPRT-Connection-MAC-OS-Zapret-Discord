@@ -52,7 +52,7 @@ struct HomeView: View {
                 Text("ZPRT")
                     .font(.system(size: 34, weight: .black, design: .rounded))
                     .foregroundStyle(palette.ink)
-                Text("Connection · developer by @pxdx")
+                Text("Connection · developer by @pxdxz")
                     .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundStyle(palette.inkSoft)
             }
