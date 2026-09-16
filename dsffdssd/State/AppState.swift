@@ -121,15 +121,32 @@ final class AppState {
 
     func dismissNotice() { notice = nil }
 
+    private var statusRefreshInFlight = false
+
+    /// Prerequisites/installed/running all shell out to ifconfig/launchctl/route.
+    /// Those can block for a while (especially launchctl right after install/stop),
+    /// so never run them on the main actor — that used to freeze the whole UI
+    /// (including the uptime timer) every 3s via the poll loop.
     func refreshStatus() {
-        prerequisites = EngineService.refreshPrerequisites()
-        installed = EnginePaths.isInstalled
-        let wasRunning = running
-        running = installed && EnginePaths.isRunning
-        if running, startedAt == nil { startedAt = Date() }
-        if !running { startedAt = nil }
-        if wasRunning != running { notifyTray() }
-        refreshIpsetCount()
+        guard !statusRefreshInFlight else { return }
+        statusRefreshInFlight = true
+        Task.detached { [weak self] in
+            let prerequisites = EngineService.refreshPrerequisites()
+            let installed = EnginePaths.isInstalled
+            let running = installed && EnginePaths.isRunning
+            await MainActor.run {
+                guard let self else { return }
+                self.statusRefreshInFlight = false
+                self.prerequisites = prerequisites
+                self.installed = installed
+                let wasRunning = self.running
+                self.running = running
+                if self.running, self.startedAt == nil { self.startedAt = Date() }
+                if !self.running { self.startedAt = nil }
+                if wasRunning != self.running { self.notifyTray() }
+                self.refreshIpsetCount()
+            }
+        }
     }
 
     func refreshIpsetCount() {
@@ -318,6 +335,32 @@ final class AppState {
 
     func updateNow() async {
         pushNotice("Обновления — через новый билд ZPRT Connection")
+    }
+
+    func launchDiscordBypassingUpdater() async {
+        let bundleId = "com.hnc.Discord"
+        let running = NSRunningApplication.runningApplications(withBundleIdentifier: bundleId)
+        if !running.isEmpty {
+            for app in running { app.terminate() }
+            for _ in 0..<25 {
+                try? await Task.sleep(for: .milliseconds(200))
+                if NSRunningApplication.runningApplications(withBundleIdentifier: bundleId).isEmpty { break }
+            }
+        }
+        guard let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleId) else {
+            pushNotice("Discord.app не найден", error: true)
+            return
+        }
+        let binary = appURL.appendingPathComponent("Contents/MacOS/Discord")
+        let task = Process()
+        task.executableURL = binary
+        task.arguments = ["--disable-updater"]
+        do {
+            try task.run()
+            pushNotice("Discord перезапущен без апдейтера")
+        } catch {
+            pushNotice("Не удалось перезапустить Discord: \(error.localizedDescription)", error: true)
+        }
     }
 
     func resetList(_ file: ListFile) {

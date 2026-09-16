@@ -10,6 +10,7 @@ struct SettingsView: View {
     @State private var systemAdvanced = false
     @State private var askUninstall = false
     @State private var editorToken = UUID()
+    @State private var showPlatformPicker = false
 
     private var editable: Bool {
         state.busy == nil && state.probePhase == nil
@@ -210,6 +211,13 @@ struct SettingsView: View {
                     syncFromState()
                 }
             }
+
+            GhostButton(title: "Добавить платформу", enabled: editable) {
+                showPlatformPicker = true
+            }
+        }
+        .sheet(isPresented: $showPlatformPicker) {
+            PlatformPickerSheet(alreadyAdded: platformAlreadyAdded, onAdd: addPlatform)
         }
     }
 
@@ -271,6 +279,34 @@ struct SettingsView: View {
             }
         }
         .padding(.top, 4)
+    }
+
+    private func userDomainSet() -> Set<String> {
+        Set(
+            (lists[.generalUser] ?? "")
+                .split(whereSeparator: \.isNewline)
+                .map { $0.trimmingCharacters(in: .whitespaces).lowercased() }
+                .filter { !$0.isEmpty && !$0.hasPrefix("#") }
+        )
+    }
+
+    private func platformAlreadyAdded(_ platform: PopularPlatform) -> Bool {
+        let existing = userDomainSet()
+        return platform.domains.allSatisfy { existing.contains($0.lowercased()) }
+    }
+
+    /// Appends to the user list — never clears it, only adds domains that aren't already there.
+    private func addPlatform(_ platform: PopularPlatform) {
+        let existing = userDomainSet()
+        let newDomains = platform.domains.filter { !existing.contains($0.lowercased()) }
+        guard !newDomains.isEmpty else { return }
+
+        var current = lists[.generalUser] ?? ""
+        if !current.isEmpty && !current.hasSuffix("\n") { current += "\n" }
+        current += "# \(platform.name)\n" + newDomains.joined(separator: "\n") + "\n"
+        lists[.generalUser] = current
+        selectedList = .generalUser
+        editorToken = UUID()
     }
 
     private func binding(for file: ListFile) -> Binding<String> {

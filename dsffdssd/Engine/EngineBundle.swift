@@ -38,6 +38,7 @@ enum EngineBundle {
             "stun.bin", "stun2.bin",
             "tls_clienthello_4pda_to.bin",
             "tls_clienthello_max_ru.bin",
+            "tls_clienthello_sochi_park.bin",
             "tls_clienthello_www_google_com.bin",
         ]
         for name in binFiles {

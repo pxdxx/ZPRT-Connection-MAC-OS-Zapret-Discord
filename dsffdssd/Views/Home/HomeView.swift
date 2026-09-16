@@ -11,6 +11,12 @@ struct HomeView: View {
 
             heroBoard
 
+            if state.installed {
+                GhostButton(title: "Discord без апдейтера") {
+                    Task { await state.launchDiscordBypassingUpdater() }
+                }
+            }
+
             PrerequisitesCard(prerequisites: state.prerequisites)
 
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {

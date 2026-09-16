@@ -9,12 +9,6 @@
 --dpi-desync-repeats=6
 --dpi-desync-fake-quic="@BASE@/bin/quic_initial_www_google_com.bin"
 --new
---filter-udp=443
---hostlist="@LISTS@/list-google.txt"
---dpi-desync=fake
---dpi-desync-repeats=11
---dpi-desync-fake-quic="@BASE@/bin/quic_initial_www_google_com.bin"
---new
 --filter-udp=19294-19344,50000-50100
 --filter-l7=discord,stun
 --dpi-desync=fake
@@ -32,10 +26,9 @@
 --filter-tcp=443
 --hostlist="@LISTS@/list-google.txt"
 --ip-id=zero
---dpi-desync=fake
---dpi-desync-repeats=6
+--dpi-desync=hostfakesplit
 --dpi-desync-fooling=ts
---dpi-desync-fake-tls="@BASE@/bin/tls_clienthello_www_google_com.bin"
+--dpi-desync-hostfakesplit-mod=host=www.google.com
 --new
 --filter-tcp=80,443
 --hostlist="@LISTS@/list-general.txt"
@@ -47,7 +40,6 @@
 --dpi-desync=fake
 --dpi-desync-repeats=6
 --dpi-desync-fooling=ts
---dpi-desync-fake-tls="@BASE@/bin/stun.bin"
 --dpi-desync-fake-tls="@BASE@/bin/tls_clienthello_www_google_com.bin"
 --dpi-desync-fake-http="@BASE@/bin/tls_clienthello_max_ru.bin"
 --new
@@ -70,6 +62,5 @@
 --dpi-desync=fake
 --dpi-desync-repeats=6
 --dpi-desync-fooling=ts
---dpi-desync-fake-tls="@BASE@/bin/stun.bin"
 --dpi-desync-fake-tls="@BASE@/bin/tls_clienthello_www_google_com.bin"
 --dpi-desync-fake-http="@BASE@/bin/tls_clienthello_max_ru.bin"

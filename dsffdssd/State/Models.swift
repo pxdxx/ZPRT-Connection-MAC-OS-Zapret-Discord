@@ -171,6 +171,69 @@ enum ListFile: String, CaseIterable, Identifiable {
     }
 }
 
+struct PopularPlatform: Identifiable, Hashable {
+    let id: String
+    let name: String
+    let symbol: String
+    let tintHex: UInt32
+    let domains: [String]
+}
+
+extension Array where Element == PopularPlatform {
+    /// Часто блокируемые/замедляемые платформы, которых нет в пакете по умолчанию
+    /// (Discord и YouTube уже покрыты списками general/google).
+    static let popularPlatforms: [PopularPlatform] = [
+        .init(
+            id: "instagram", name: "Instagram", symbol: "camera.fill", tintHex: 0xE1306C,
+            domains: ["instagram.com", "www.instagram.com", "cdninstagram.com", "scontent.cdninstagram.com", "instagr.am"]
+        ),
+        .init(
+            id: "facebook", name: "Facebook", symbol: "person.2.fill", tintHex: 0x1877F2,
+            domains: ["facebook.com", "www.facebook.com", "fbcdn.net", "facebook.net", "fb.com", "fbsbx.com", "messenger.com"]
+        ),
+        .init(
+            id: "twitter", name: "X (Twitter)", symbol: "at", tintHex: 0x111111,
+            domains: ["twitter.com", "x.com", "twimg.com", "t.co"]
+        ),
+        .init(
+            id: "linkedin", name: "LinkedIn", symbol: "briefcase.fill", tintHex: 0x0A66C2,
+            domains: ["linkedin.com", "www.linkedin.com", "licdn.com"]
+        ),
+        .init(
+            id: "pinterest", name: "Pinterest", symbol: "pin.fill", tintHex: 0xE60023,
+            domains: ["pinterest.com", "www.pinterest.com", "pinimg.com"]
+        ),
+        .init(
+            id: "twitch", name: "Twitch", symbol: "gamecontroller.fill", tintHex: 0x9146FF,
+            domains: ["twitch.tv", "www.twitch.tv", "ttvnw.net", "jtvnw.net"]
+        ),
+        .init(
+            id: "spotify", name: "Spotify", symbol: "waveform", tintHex: 0x1DB954,
+            domains: ["spotify.com", "www.spotify.com", "scdn.co", "spotifycdn.com"]
+        ),
+        .init(
+            id: "whatsapp", name: "WhatsApp", symbol: "message.fill", tintHex: 0x25D366,
+            domains: ["whatsapp.com", "www.whatsapp.com", "whatsapp.net"]
+        ),
+        .init(
+            id: "signal", name: "Signal", symbol: "lock.shield.fill", tintHex: 0x3A76F0,
+            domains: ["signal.org", "www.signal.org", "signal.me"]
+        ),
+        .init(
+            id: "tiktok", name: "TikTok", symbol: "play.rectangle.fill", tintHex: 0x000000,
+            domains: ["tiktok.com", "www.tiktok.com", "tiktokcdn.com", "tiktokv.com", "musical.ly", "byteoversea.com"]
+        ),
+        .init(
+            id: "viber", name: "Viber", symbol: "phone.fill", tintHex: 0x7360F2,
+            domains: ["viber.com", "www.viber.com"]
+        ),
+        .init(
+            id: "notion", name: "Notion", symbol: "doc.text.fill", tintHex: 0x000000,
+            domains: ["notion.so", "www.notion.so", "notion.site"]
+        ),
+    ]
+}
+
 enum UninstallScope: String, CaseIterable, Identifiable {
     case appOnly
     case appAndEngine
@@ -189,6 +252,6 @@ extension Array where Element == StrategyEntry {
     static let bundled: [StrategyEntry] = [
         .init(id: "general-simple-fake", title: "GENERAL (SIMPLE FAKE)", detail: "по умолчанию для Discord"),
         .init(id: "general-fake-tls-auto", title: "GENERAL (FAKE TLS AUTO)", detail: "если SIMPLE FAKE слабо"),
-        .init(id: "general-pq-multisplit", title: "GENERAL (PQ MULTISPLIT)", detail: "жёсткий DPI"),
+        .init(id: "general-alt", title: "GENERAL (ALT)", detail: "жёсткий DPI"),
     ]
 }
