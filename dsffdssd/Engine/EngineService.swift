@@ -180,33 +180,6 @@ enum EngineService {
         return try PrivilegeRunner.runScriptFile(EnginePaths.uninstallScript)
     }
 
-    static func probeStrategies(strategies: [StrategyEntry], onPhase: @MainActor (String) -> Void) async -> StrategyProbeReport {
-        var rows: [ProbeResultRow] = []
-        for (index, strategy) in strategies.prefix(8).enumerated() {
-            await onPhase("Проверка \(strategy.title)…")
-            try? await Task.sleep(for: .milliseconds(350))
-            let discord = await pingHost("discord.com")
-            let youtube = await pingHost("www.youtube.com")
-            let video = await pingHost("googlevideo.com")
-            let control = await pingHost("1.1.1.1")
-            let score = (discord ? 30 : 0) + (youtube ? 30 : 0) + (video ? 20 : 0) + (control ? 20 : 0) - index
-            rows.append(
-                ProbeResultRow(
-                    id: strategy.id,
-                    score: score,
-                    stability: min(99, 70 + score / 2),
-                    latencyMs: 40 + index * 8,
-                    discord: discord ? "3/3" : "0/3",
-                    youtube: youtube ? "3/3" : "1/3",
-                    video: video ? "2/3" : "0/3",
-                    control: control ? "3/3" : "2/3"
-                )
-            )
-        }
-        rows.sort { $0.score > $1.score }
-        return StrategyProbeReport(winnerId: rows.first?.id, results: rows)
-    }
-
     private static func canPasswordless() -> Bool {
         FileManager.default.fileExists(atPath: "/etc/sudoers.d/zapret")
             || FileManager.default.fileExists(atPath: "/etc/sudoers.d/zapret2")
@@ -226,15 +199,5 @@ enum EngineService {
             }
         }
         return "en0"
-    }
-
-    private static func pingHost(_ host: String) async -> Bool {
-        await withCheckedContinuation { cont in
-            DispatchQueue.global().async {
-                let result = Shell.run(["/usr/bin/curl", "-I", "-m", "3", "-s", "-o", "/dev/null", "-w", "%{http_code}", "https://\(host)"], timeoutSeconds: 5)
-                let code = Int(result.output.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
-                cont.resume(returning: (200..<500).contains(code) || result.ok)
-            }
-        }
     }
 }

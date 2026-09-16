@@ -94,22 +94,6 @@ struct Prerequisites: Equatable {
     )
 }
 
-struct ProbeResultRow: Identifiable, Equatable {
-    let id: String
-    let score: Int
-    let stability: Int
-    let latencyMs: Int?
-    let discord: String
-    let youtube: String
-    let video: String
-    let control: String
-}
-
-struct StrategyProbeReport: Equatable {
-    var winnerId: String?
-    var results: [ProbeResultRow]
-}
-
 struct Notice: Equatable, Identifiable {
     let id = UUID()
     let text: String
@@ -174,61 +158,69 @@ enum ListFile: String, CaseIterable, Identifiable {
 struct PopularPlatform: Identifiable, Hashable {
     let id: String
     let name: String
-    let symbol: String
+    /// Name of the vector image set in Assets.xcassets (official brand mark).
+    let assetName: String
     let tintHex: UInt32
     let domains: [String]
 }
 
 extension Array where Element == PopularPlatform {
-    /// Часто блокируемые/замедляемые платформы, которых нет в пакете по умолчанию
-    /// (Discord и YouTube уже покрыты списками general/google).
+    /// Часто блокируемые/замедляемые платформы. Discord уже покрыт списком general по умолчанию.
     static let popularPlatforms: [PopularPlatform] = [
         .init(
-            id: "instagram", name: "Instagram", symbol: "camera.fill", tintHex: 0xE1306C,
+            id: "youtube", name: "YouTube", assetName: "platform-youtube", tintHex: 0xFF0000,
+            domains: [
+                "youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be",
+                "youtube-nocookie.com", "ytimg.com", "googlevideo.com",
+                "yt3.ggpht.com", "youtubei.googleapis.com",
+            ]
+        ),
+        .init(
+            id: "instagram", name: "Instagram", assetName: "platform-instagram", tintHex: 0xE4405F,
             domains: ["instagram.com", "www.instagram.com", "cdninstagram.com", "scontent.cdninstagram.com", "instagr.am"]
         ),
         .init(
-            id: "facebook", name: "Facebook", symbol: "person.2.fill", tintHex: 0x1877F2,
+            id: "facebook", name: "Facebook", assetName: "platform-facebook", tintHex: 0x1877F2,
             domains: ["facebook.com", "www.facebook.com", "fbcdn.net", "facebook.net", "fb.com", "fbsbx.com", "messenger.com"]
         ),
         .init(
-            id: "twitter", name: "X (Twitter)", symbol: "at", tintHex: 0x111111,
+            id: "twitter", name: "X (Twitter)", assetName: "platform-x", tintHex: 0x000000,
             domains: ["twitter.com", "x.com", "twimg.com", "t.co"]
         ),
         .init(
-            id: "linkedin", name: "LinkedIn", symbol: "briefcase.fill", tintHex: 0x0A66C2,
+            id: "linkedin", name: "LinkedIn", assetName: "platform-linkedin", tintHex: 0x0A66C2,
             domains: ["linkedin.com", "www.linkedin.com", "licdn.com"]
         ),
         .init(
-            id: "pinterest", name: "Pinterest", symbol: "pin.fill", tintHex: 0xE60023,
+            id: "pinterest", name: "Pinterest", assetName: "platform-pinterest", tintHex: 0xE60023,
             domains: ["pinterest.com", "www.pinterest.com", "pinimg.com"]
         ),
         .init(
-            id: "twitch", name: "Twitch", symbol: "gamecontroller.fill", tintHex: 0x9146FF,
+            id: "twitch", name: "Twitch", assetName: "platform-twitch", tintHex: 0x9146FF,
             domains: ["twitch.tv", "www.twitch.tv", "ttvnw.net", "jtvnw.net"]
         ),
         .init(
-            id: "spotify", name: "Spotify", symbol: "waveform", tintHex: 0x1DB954,
+            id: "spotify", name: "Spotify", assetName: "platform-spotify", tintHex: 0x1DB954,
             domains: ["spotify.com", "www.spotify.com", "scdn.co", "spotifycdn.com"]
         ),
         .init(
-            id: "whatsapp", name: "WhatsApp", symbol: "message.fill", tintHex: 0x25D366,
+            id: "whatsapp", name: "WhatsApp", assetName: "platform-whatsapp", tintHex: 0x25D366,
             domains: ["whatsapp.com", "www.whatsapp.com", "whatsapp.net"]
         ),
         .init(
-            id: "signal", name: "Signal", symbol: "lock.shield.fill", tintHex: 0x3A76F0,
+            id: "signal", name: "Signal", assetName: "platform-signal", tintHex: 0x3A76F0,
             domains: ["signal.org", "www.signal.org", "signal.me"]
         ),
         .init(
-            id: "tiktok", name: "TikTok", symbol: "play.rectangle.fill", tintHex: 0x000000,
+            id: "tiktok", name: "TikTok", assetName: "platform-tiktok", tintHex: 0x000000,
             domains: ["tiktok.com", "www.tiktok.com", "tiktokcdn.com", "tiktokv.com", "musical.ly", "byteoversea.com"]
         ),
         .init(
-            id: "viber", name: "Viber", symbol: "phone.fill", tintHex: 0x7360F2,
+            id: "viber", name: "Viber", assetName: "platform-viber", tintHex: 0x7360F2,
             domains: ["viber.com", "www.viber.com"]
         ),
         .init(
-            id: "notion", name: "Notion", symbol: "doc.text.fill", tintHex: 0x000000,
+            id: "notion", name: "Notion", assetName: "platform-notion", tintHex: 0x000000,
             domains: ["notion.so", "www.notion.so", "notion.site"]
         ),
     ]

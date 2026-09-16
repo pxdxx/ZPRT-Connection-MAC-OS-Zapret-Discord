@@ -28,3 +28,7 @@ This project vendors a Zapret engine payload (`utunws` and related scripts)
 derived from the Zapret / zapret2 ecosystem. Those components retain their
 original licenses (typically MIT) and copyright of their respective authors,
 including bol-van/zapret and contributors of zapret2.
+
+The platform icons in Assets.xcassets (`platform-*.imageset`) are brand marks
+sourced from Simple Icons (https://simpleicons.org, CC0 1.0 for the icon
+artwork). Each mark remains a trademark of its respective owner.

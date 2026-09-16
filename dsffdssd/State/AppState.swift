@@ -19,8 +19,6 @@ final class AppState {
     var autoUpdate = true
     var appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
     var updateAvailable: String?
-    var probePhase: String?
-    var probeReport: StrategyProbeReport?
 
     var prerequisites = Prerequisites.demo
     var strategies: [StrategyEntry] = .bundled
@@ -308,25 +306,6 @@ final class AppState {
         busy = nil
         refreshStatus()
         notifyTray()
-    }
-
-    func probeStrategies() async {
-        guard busy == nil, probePhase == nil else { return }
-        guard installed else {
-            pushNotice("Сначала установите движок", error: true)
-            return
-        }
-        probePhase = "Старт…"
-        let list = strategies
-        probeReport = await EngineService.probeStrategies(strategies: list) { phase in
-            self.probePhase = phase
-        }
-        probePhase = nil
-        if let winner = probeReport?.winnerId {
-            pushNotice("Лучшая стратегия: \(winner)")
-        } else {
-            pushNotice("Подходящая стратегия не найдена", error: true)
-        }
     }
 
     func checkForUpdates() async {

@@ -46,11 +46,12 @@ struct PlatformPickerSheet: View {
             VStack(spacing: 10) {
                 ZStack {
                     Circle()
-                        .fill(Color(hex: platform.tintHex).opacity(0.18))
+                        .fill(Color(hex: platform.tintHex).opacity(0.14))
                         .frame(width: 44, height: 44)
-                    Image(systemName: platform.symbol)
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(Color(hex: platform.tintHex))
+                    Image(platform.assetName)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 22, height: 22)
                 }
                 Text(platform.name)
                     .font(.system(size: 12, weight: .bold, design: .rounded))

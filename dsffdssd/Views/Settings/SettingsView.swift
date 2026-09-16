@@ -13,7 +13,7 @@ struct SettingsView: View {
     @State private var showPlatformPicker = false
 
     private var editable: Bool {
-        state.busy == nil && state.probePhase == nil
+        state.busy == nil
     }
 
     var body: some View {
@@ -85,30 +85,14 @@ struct SettingsView: View {
     private var antiDpiSection: some View {
         SettingsSection(
             title: "Анти-DPI",
-            description: "По умолчанию уже заточено под Discord. VPN — только split-tunnel.",
             credit: "discord",
             accent: palette.peachDeep
         ) {
             strategyPicker
 
-            GhostButton(
-                title: state.probePhase ?? "Подобрать стратегию",
-                enabled: editable && state.installed
-            ) {
-                Task { await state.probeStrategies() }
-            }
-
-            if let report = state.probeReport {
-                probeSummary(report)
-            }
-
             Text("IP-список")
                 .font(.system(size: 11, weight: .bold, design: .rounded))
                 .foregroundStyle(palette.inkFaint)
-
-            Text("При первой установке пакетный ipset-all.txt копируется автоматически. Сейчас: \(state.ipsetEntryCount) записей.")
-                .font(.system(size: 11, weight: .medium, design: .rounded))
-                .foregroundStyle(palette.inkSoft)
 
             ForEach(IpsetMode.allCases) { mode in
                 VStack(alignment: .leading, spacing: 4) {
@@ -174,7 +158,6 @@ struct SettingsView: View {
     private var listsSection: some View {
         SettingsSection(
             title: "Списки",
-            description: "Discord уже в «Домены (Discord и др.)». Свои сайты — в «Домены пользователя».",
             accent: palette.sky
         ) {
             Picker("Файл", selection: $selectedList) {
@@ -196,10 +179,6 @@ struct SettingsView: View {
                 enabled: editable
             )
             .id("\(selectedList.rawValue)-\(editorToken.uuidString)-\(state.listsRevision)")
-
-            Text("Один хост на строку, без https://. После правок — «Применить».")
-                .font(.system(size: 11, weight: .medium, design: .rounded))
-                .foregroundStyle(palette.inkSoft)
 
             HStack(spacing: 16) {
                 TextActionButton(title: "Сбросить выбранный", enabled: editable) {
@@ -258,27 +237,6 @@ struct SettingsView: View {
                 askUninstall = true
             }
         }
-    }
-
-    private func probeSummary(_ report: StrategyProbeReport) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(report.winnerId.map { "Лучшая: \($0)" } ?? "Подходящая стратегия не найдена")
-                .font(.system(size: 13, weight: .bold, design: .rounded))
-                .foregroundStyle(report.winnerId == nil ? palette.danger : palette.sage)
-
-            ForEach(report.results) { row in
-                Text("\(row.id): \(row.score) · \(row.stability)% · \(row.latencyMs.map { "\($0)ms" } ?? "—")")
-                    .font(.system(size: 11, design: .monospaced))
-                    .foregroundStyle(palette.inkSoft)
-            }
-
-            if let winner = report.winnerId {
-                TextActionButton(title: "Применить \(winner)", enabled: editable) {
-                    draft.strategyId = winner
-                }
-            }
-        }
-        .padding(.top, 4)
     }
 
     private func userDomainSet() -> Set<String> {

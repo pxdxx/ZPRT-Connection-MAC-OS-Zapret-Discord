@@ -52,30 +52,20 @@ enum EnginePaths {
         return launchdIsRunning()
     }
 
+    // These used to spawn Process()+waitUntilExit() directly with no timeout and an
+    // unread output pipe — if launchctl ever wrote enough output to fill the pipe
+    // buffer with nobody draining it, the child would block on write and
+    // waitUntilExit() would hang forever (the exact "hangs out of nowhere after a
+    // while" reports). Shell.run() already handles this safely with a timeout and
+    // a forced terminate, so route through it instead.
     private static func ifconfigExists(_ iface: String) -> Bool {
-        let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/sbin/ifconfig")
-        task.arguments = [iface]
-        let pipe = Pipe()
-        task.standardOutput = pipe
-        task.standardError = pipe
-        try? task.run()
-        task.waitUntilExit()
-        return task.terminationStatus == 0
+        Shell.run(["/sbin/ifconfig", iface], timeoutSeconds: 5).ok
     }
 
     private static func launchdIsRunning() -> Bool {
-        let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/bin/launchctl")
-        task.arguments = ["print", "system/\(daemonLabel)"]
-        let pipe = Pipe()
-        task.standardOutput = pipe
-        task.standardError = pipe
-        try? task.run()
-        task.waitUntilExit()
-        guard task.terminationStatus == 0 else { return false }
-        let text = String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
-        return text.contains("state = running")
+        let result = Shell.run(["/bin/launchctl", "print", "system/\(daemonLabel)"], timeoutSeconds: 5)
+        guard result.ok else { return false }
+        return result.output.contains("state = running")
     }
 }
 
