@@ -1,6 +1,13 @@
 import Foundation
 
-enum EngineService {
+/// The project defaults every unmarked type to @MainActor isolation
+/// (SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor). Without `nonisolated` here,
+/// every call into this enum — including from inside Task.detached — got
+/// silently hopped back onto the main actor, so the blocking Process/osascript
+/// calls inside (install/start/stop/uninstall, ifconfig/launchctl checks)
+/// always ran on the main thread regardless of the detached wrapper. That's
+/// the real cause of the app freezing on GO and on the status poll.
+nonisolated enum EngineService {
     static func refreshPrerequisites() -> Prerequisites {
         let resources = Bundle.main.resourceURL
         let hasBinary = resources.map {

@@ -1,6 +1,10 @@
 import Foundation
 
-enum AppScreen: String, CaseIterable, Identifiable {
+// Plain Sendable data types — read from both @MainActor UI code and the
+// nonisolated Engine* background layer, so none of these should pick up the
+// project's default @MainActor isolation.
+
+nonisolated enum AppScreen: String, CaseIterable, Identifiable {
     case home
     case settings
 
@@ -21,7 +25,7 @@ enum AppScreen: String, CaseIterable, Identifiable {
     }
 }
 
-enum IpsetMode: String, CaseIterable, Identifiable {
+nonisolated enum IpsetMode: String, CaseIterable, Identifiable {
     case none
     case loaded
     case any
@@ -48,13 +52,13 @@ enum IpsetMode: String, CaseIterable, Identifiable {
     }
 }
 
-struct StrategyEntry: Identifiable, Hashable {
+nonisolated struct StrategyEntry: Identifiable, Hashable {
     let id: String
     let title: String
     let detail: String
 }
 
-struct EngineConfig: Equatable {
+nonisolated struct EngineConfig: Equatable {
     var strategyId: String
     var ipsetMode: IpsetMode
     var discordUdp: Bool
@@ -69,7 +73,7 @@ struct EngineConfig: Equatable {
     )
 }
 
-struct Prerequisites: Equatable {
+nonisolated struct Prerequisites: Equatable {
     var hasSources: Bool
     var hasPrebuiltBinary: Bool
     var hasCompiler: Bool
@@ -94,13 +98,13 @@ struct Prerequisites: Equatable {
     )
 }
 
-struct Notice: Equatable, Identifiable {
+nonisolated struct Notice: Equatable, Identifiable {
     let id = UUID()
     let text: String
     let isError: Bool
 }
 
-enum ListFile: String, CaseIterable, Identifiable {
+nonisolated enum ListFile: String, CaseIterable, Identifiable {
     case general = "list-general.txt"
     case generalUser = "list-general-user.txt"
     case google = "list-google.txt"
@@ -155,7 +159,7 @@ enum ListFile: String, CaseIterable, Identifiable {
     }
 }
 
-struct PopularPlatform: Identifiable, Hashable {
+nonisolated struct PopularPlatform: Identifiable, Hashable {
     let id: String
     let name: String
     /// Name of the vector image set in Assets.xcassets (official brand mark).
@@ -164,7 +168,7 @@ struct PopularPlatform: Identifiable, Hashable {
     let domains: [String]
 }
 
-extension Array where Element == PopularPlatform {
+nonisolated extension Array where Element == PopularPlatform {
     /// Часто блокируемые/замедляемые платформы. Discord уже покрыт списком general по умолчанию.
     static let popularPlatforms: [PopularPlatform] = [
         .init(
@@ -226,7 +230,7 @@ extension Array where Element == PopularPlatform {
     ]
 }
 
-enum UninstallScope: String, CaseIterable, Identifiable {
+nonisolated enum UninstallScope: String, CaseIterable, Identifiable {
     case appOnly
     case appAndEngine
 
@@ -240,7 +244,7 @@ enum UninstallScope: String, CaseIterable, Identifiable {
     }
 }
 
-extension Array where Element == StrategyEntry {
+nonisolated extension Array where Element == StrategyEntry {
     static let bundled: [StrategyEntry] = [
         .init(id: "general-simple-fake", title: "GENERAL (SIMPLE FAKE)", detail: "по умолчанию для Discord"),
         .init(id: "general-fake-tls-auto", title: "GENERAL (FAKE TLS AUTO)", detail: "если SIMPLE FAKE слабо"),

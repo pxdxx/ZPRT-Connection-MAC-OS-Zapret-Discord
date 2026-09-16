@@ -6,7 +6,6 @@ struct SettingsView: View {
 
     @State private var draft = EngineConfig.default
     @State private var lists: [ListFile: String] = [:]
-    @State private var selectedList: ListFile = .general
     @State private var systemAdvanced = false
     @State private var askUninstall = false
     @State private var editorToken = UUID()
@@ -160,32 +159,21 @@ struct SettingsView: View {
             title: "Списки",
             accent: palette.sky
         ) {
-            Picker("Файл", selection: $selectedList) {
-                ForEach(ListFile.allCases) { file in
-                    Text(file.label).tag(file)
-                }
-            }
-            .pickerStyle(.menu)
-            .disabled(!editable)
-            .onChange(of: selectedList) { _, _ in
-                editorToken = UUID()
-            }
-
             LabeledField(
-                label: selectedList.label,
-                text: binding(for: selectedList),
+                label: "Домены (Discord и добавленные платформы)",
+                text: binding(for: .generalUser),
                 mono: true,
                 minHeight: 140,
                 enabled: editable
             )
-            .id("\(selectedList.rawValue)-\(editorToken.uuidString)-\(state.listsRevision)")
+            .id("\(editorToken.uuidString)-\(state.listsRevision)")
 
             HStack(spacing: 16) {
-                TextActionButton(title: "Сбросить выбранный", enabled: editable) {
-                    state.resetList(selectedList)
+                TextActionButton(title: "Сбросить домены", enabled: editable) {
+                    state.resetList(.generalUser)
                     syncFromState()
                 }
-                TextActionButton(title: "Сбросить все к пакету", enabled: editable) {
+                TextActionButton(title: "Сбросить всё к пакету", enabled: editable) {
                     state.resetAllLists()
                     syncFromState()
                 }
@@ -196,7 +184,7 @@ struct SettingsView: View {
             }
         }
         .sheet(isPresented: $showPlatformPicker) {
-            PlatformPickerSheet(alreadyAdded: platformAlreadyAdded, onAdd: addPlatform)
+            PlatformPickerSheet(alreadyAdded: platformAlreadyAdded, onToggle: togglePlatform)
         }
     }
 
@@ -253,7 +241,15 @@ struct SettingsView: View {
         return platform.domains.allSatisfy { existing.contains($0.lowercased()) }
     }
 
-    /// Appends to the user list — never clears it, only adds domains that aren't already there.
+    private func togglePlatform(_ platform: PopularPlatform) {
+        if platformAlreadyAdded(platform) {
+            removePlatform(platform)
+        } else {
+            addPlatform(platform)
+        }
+    }
+
+    /// Appends to the domains list — never clears it, only adds domains that aren't already there.
     private func addPlatform(_ platform: PopularPlatform) {
         let existing = userDomainSet()
         let newDomains = platform.domains.filter { !existing.contains($0.lowercased()) }
@@ -263,7 +259,24 @@ struct SettingsView: View {
         if !current.isEmpty && !current.hasSuffix("\n") { current += "\n" }
         current += "# \(platform.name)\n" + newDomains.joined(separator: "\n") + "\n"
         lists[.generalUser] = current
-        selectedList = .generalUser
+        editorToken = UUID()
+    }
+
+    /// Removes exactly the domains (and header comment) that this platform would have added.
+    private func removePlatform(_ platform: PopularPlatform) {
+        let domainsLower = Set(platform.domains.map { $0.lowercased() })
+        let header = "# \(platform.name)"
+        let current = lists[.generalUser] ?? ""
+        let kept = current
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .map(String.init)
+            .filter { line in
+                let trimmed = line.trimmingCharacters(in: .whitespaces)
+                if trimmed == header { return false }
+                if domainsLower.contains(trimmed.lowercased()) { return false }
+                return true
+            }
+        lists[.generalUser] = kept.joined(separator: "\n")
         editorToken = UUID()
     }
 

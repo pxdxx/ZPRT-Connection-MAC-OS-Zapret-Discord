@@ -1,6 +1,6 @@
 import Foundation
 
-enum EnginePaths {
+nonisolated enum EnginePaths {
     static let daemonLabel = "org.zapret.macos.engine"
     static let systemRoot = URL(fileURLWithPath: "/Library/Application Support/Zapret")
     static let launchDaemon = URL(fileURLWithPath: "/Library/LaunchDaemons/\(daemonLabel).plist")

@@ -2,7 +2,7 @@ import Foundation
 
 /// Xcode flattens `Resources/engine` into `Contents/Resources`.
 /// Rebuild the tree the stock install.sh / run.sh expect.
-enum EngineBundle {
+nonisolated enum EngineBundle {
     static var stagingRoot: URL {
         FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Library/Application Support/Outpost/payload")

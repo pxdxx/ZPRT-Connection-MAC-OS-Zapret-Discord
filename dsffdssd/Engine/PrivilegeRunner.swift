@@ -1,6 +1,6 @@
 import Foundation
 
-enum PrivilegeRunner {
+nonisolated enum PrivilegeRunner {
     private static let cancelToken = "-128"
 
     static func runScript(_ script: String, args: [String] = [], timeoutSeconds: TimeInterval = 300) throws -> CommandResult {
@@ -42,7 +42,7 @@ enum PrivilegeRunner {
     }
 }
 
-enum Shell {
+nonisolated enum Shell {
     static func run(_ args: [String], timeoutSeconds: TimeInterval = 120) -> CommandResult {
         guard let launch = args.first else {
             return CommandResult(ok: false, output: "empty command")
