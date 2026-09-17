@@ -60,16 +60,27 @@ nonisolated enum EngineService {
             for defaults in defaultDirs {
                 for file in ListFile.allCases {
                     let dest = EnginePaths.listsDir.appendingPathComponent(file.rawValue)
-                    if fm.fileExists(atPath: dest.path) {
-                        if file == .generalUser {
-                            try migrateDiscordDefaultsIfNeeded(dest: dest, defaultsRoot: defaults)
+                    let alreadyExists = fm.fileExists(atPath: dest.path)
+
+                    if file.isUserManaged {
+                        if alreadyExists {
+                            if file == .generalUser {
+                                try migrateDiscordDefaultsIfNeeded(dest: dest, defaultsRoot: defaults)
+                            }
+                            continue
                         }
-                        continue
                     }
+
                     let src = defaults.appendingPathComponent(file.rawValue)
                     if fm.fileExists(atPath: src.path) {
-                        try fm.copyItem(at: src, to: dest)
-                    } else if !file.defaultContent.isEmpty {
+                        guard let content = try? String(contentsOf: src, encoding: .utf8) else { continue }
+                        if alreadyExists,
+                           let current = try? String(contentsOf: dest, encoding: .utf8),
+                           current == content {
+                            continue
+                        }
+                        try content.write(to: dest, atomically: true, encoding: .utf8)
+                    } else if !alreadyExists, !file.defaultContent.isEmpty {
                         try file.defaultContent.write(to: dest, atomically: true, encoding: .utf8)
                     }
                 }

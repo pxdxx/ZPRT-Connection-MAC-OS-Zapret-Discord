@@ -118,6 +118,12 @@ nonisolated enum ListFile: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    /// The three "-user" files are the only ones with any UI to edit them —
+    /// everything else is a package list with no supported way to customize
+    /// it, so it's always safe (and necessary for fixes to reach existing
+    /// installs) to keep those in sync with the currently bundled defaults.
+    var isUserManaged: Bool { rawValue.contains("-user.") }
+
     var label: String {
         switch self {
         case .general: "Домены (Discord и др.)"
