@@ -55,7 +55,7 @@ final class AppState {
         if running {
             return "\(config.strategyId) · \(config.ipsetMode.rawValue) · Discord UDP \(config.discordUdp ? "on" : "off")"
         }
-        return "Нажмите GO, чтобы включить обход Discord"
+        return "Нажмите GO, чтобы включить обход"
     }
 
     var strategyTitle: String {
@@ -377,7 +377,7 @@ final class AppState {
         }
     }
 
-    func copyDiagnostics() {
+    func diagnosticsText() -> String {
         var lines: [String] = [
             "ZPRT Connection \(appVersion)",
             "macOS \(ProcessInfo.processInfo.operatingSystemVersionString)",
@@ -394,10 +394,14 @@ final class AppState {
                 lines.append(contentsOf: tail.map(String.init))
             }
         }
+        return lines.joined(separator: "\n")
+    }
+
+    func copyToClipboard(_ text: String) {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
-        pasteboard.setString(lines.joined(separator: "\n"), forType: .string)
-        pushNotice("Диагностика скопирована в буфер обмена")
+        pasteboard.setString(text, forType: .string)
+        pushNotice("Скопировано в буфер обмена")
     }
 
     func resetList(_ file: ListFile) {

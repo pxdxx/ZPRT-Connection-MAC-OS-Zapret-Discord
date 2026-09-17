@@ -60,7 +60,12 @@ nonisolated enum EngineService {
             for defaults in defaultDirs {
                 for file in ListFile.allCases {
                     let dest = EnginePaths.listsDir.appendingPathComponent(file.rawValue)
-                    if fm.fileExists(atPath: dest.path) { continue }
+                    if fm.fileExists(atPath: dest.path) {
+                        if file == .generalUser {
+                            try migrateDiscordDefaultsIfNeeded(dest: dest, defaultsRoot: defaults)
+                        }
+                        continue
+                    }
                     let src = defaults.appendingPathComponent(file.rawValue)
                     if fm.fileExists(atPath: src.path) {
                         try fm.copyItem(at: src, to: dest)
@@ -85,6 +90,24 @@ nonisolated enum EngineService {
         if !fm.fileExists(atPath: EnginePaths.fastKeepinitFile.path) {
             try "1".write(to: EnginePaths.fastKeepinitFile, atomically: true, encoding: .utf8)
         }
+    }
+
+    /// Installs from before the Discord starter list existed already have a
+    /// generalUser file on disk, so the "only seed if missing" rule above
+    /// would never give them the pre-filled domains. Top it up in place,
+    /// once, without touching anything the user already added.
+    private static func migrateDiscordDefaultsIfNeeded(dest: URL, defaultsRoot: URL) throws {
+        let existing = (try? String(contentsOf: dest, encoding: .utf8)) ?? ""
+        guard !existing.lowercased().contains("discord.com") else { return }
+        let starterURL = defaultsRoot.appendingPathComponent(ListFile.generalUser.rawValue)
+        let starter = (try? String(contentsOf: starterURL, encoding: .utf8)) ?? ListFile.generalUser.defaultContent
+        guard !starter.isEmpty else { return }
+        var merged = starter
+        if !merged.hasSuffix("\n") { merged += "\n" }
+        if !existing.isEmpty {
+            merged += "\n" + existing
+        }
+        try merged.write(to: dest, atomically: true, encoding: .utf8)
     }
 
     static func readConfig() -> EngineConfig {

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @Bindable var state: AppState
+    @State private var dismissedUpdateTag: String?
 
     private var palette: StudioPalette {
         state.isDarkTheme ? .dark : .light
@@ -54,6 +55,21 @@ struct ContentView: View {
             minHeight: OutpostDimens.windowMinHeight,
             idealHeight: OutpostDimens.windowHeight
         )
+        .sheet(isPresented: Binding(
+            get: { state.availableRelease != nil && state.availableRelease?.tagName != dismissedUpdateTag },
+            set: { isPresented in
+                if !isPresented { dismissedUpdateTag = state.availableRelease?.tagName }
+            }
+        )) {
+            if let release = state.availableRelease {
+                UpdateAvailableSheet(
+                    release: release,
+                    updating: state.updatingNow,
+                    onUpdate: { Task { await state.updateNow() } },
+                    onLater: { dismissedUpdateTag = release.tagName }
+                )
+            }
+        }
     }
 }
 

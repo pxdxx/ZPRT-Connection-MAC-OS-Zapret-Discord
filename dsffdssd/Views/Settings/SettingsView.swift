@@ -10,6 +10,7 @@ struct SettingsView: View {
     @State private var askUninstall = false
     @State private var editorToken = UUID()
     @State private var showPlatformPicker = false
+    @State private var showDiagnostics = false
 
     private var editable: Bool {
         state.busy == nil
@@ -218,8 +219,11 @@ struct SettingsView: View {
                 updatesCard
             }
 
-            GhostButton(title: "Скопировать диагностику", enabled: true) {
-                state.copyDiagnostics()
+            GhostButton(title: "Диагностика", enabled: true) {
+                showDiagnostics = true
+            }
+            .sheet(isPresented: $showDiagnostics) {
+                DiagnosticsSheet(text: state.diagnosticsText(), onCopy: state.copyToClipboard)
             }
 
             TextActionButton(title: "Удалить…", danger: true, enabled: editable) {
@@ -248,23 +252,9 @@ struct SettingsView: View {
             }
 
             if let release = state.availableRelease {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Доступна версия \(Updater.displayVersion(release.tagName))")
-                        .font(.system(size: 13, weight: .bold, design: .rounded))
-                        .foregroundStyle(palette.sage)
-
-                    AccentButton(
-                        title: state.updatingNow ? "Устанавливается…" : "Установить и перезапустить",
-                        enabled: editable && !state.updatingNow
-                    ) {
-                        Task { await state.updateNow() }
-                    }
-                }
-                .padding(12)
-                .background(
-                    RoundedRectangle(cornerRadius: OutpostDimens.radiusField, style: .continuous)
-                        .fill(palette.sage.opacity(0.12))
-                )
+                Text("Доступна версия \(Updater.displayVersion(release.tagName))")
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundStyle(palette.sage)
             }
         }
     }

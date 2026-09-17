@@ -68,8 +68,23 @@ nonisolated enum Updater {
         version.first == "v" || version.first == "V" ? String(version.dropFirst()) : version
     }
 
+    /// Plain string/numeric comparison treats "1.4.0" as greater than "1.4"
+    /// (longer common-prefix string), so our own "1.4" build considered the
+    /// "v1.4.0" release tag newer than itself. Compare version components
+    /// numerically instead, padding the shorter one with zeros.
     private static func isNewer(_ candidate: String, than installed: String) -> Bool {
-        displayVersion(candidate).compare(displayVersion(installed), options: [.numeric, .caseInsensitive]) == .orderedDescending
+        let c = versionComponents(candidate)
+        let i = versionComponents(installed)
+        for index in 0..<max(c.count, i.count) {
+            let cv = index < c.count ? c[index] : 0
+            let iv = index < i.count ? i[index] : 0
+            if cv != iv { return cv > iv }
+        }
+        return false
+    }
+
+    private static func versionComponents(_ version: String) -> [Int] {
+        displayVersion(version).split(separator: ".").map { Int($0) ?? 0 }
     }
 
     /// Downloads, verifies, and installs `release` over the running app, then
