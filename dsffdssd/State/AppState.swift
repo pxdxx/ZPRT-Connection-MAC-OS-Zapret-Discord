@@ -16,9 +16,11 @@ final class AppState {
 
     var config = EngineConfig.default
     var passwordless = true
-    var autoUpdate = true
+    var autoUpdate: Bool = UserDefaults.standard.object(forKey: "zprt.autoUpdate") as? Bool ?? true
     var appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
-    var updateAvailable: String?
+    var availableRelease: GitHubRelease?
+    var checkingForUpdate = false
+    var updatingNow = false
 
     var prerequisites = Prerequisites.demo
     var strategies: [StrategyEntry] = .bundled
@@ -30,6 +32,7 @@ final class AppState {
 
     private var tickTask: Task<Void, Never>?
     private var pollTask: Task<Void, Never>?
+    private var updateCheckTask: Task<Void, Never>?
 
     var uptimeText: String {
         guard running, let startedAt else { return "--:--:--" }
@@ -103,6 +106,14 @@ final class AppState {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(3))
                 refreshStatus()
+            }
+        }
+        updateCheckTask?.cancel()
+        updateCheckTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(5))
+            while !Task.isCancelled {
+                if let self, self.autoUpdate { await self.checkForUpdates() }
+                try? await Task.sleep(for: .seconds(3600))
             }
         }
         notifyTray()
@@ -208,7 +219,10 @@ final class AppState {
         pushNotice(value ? "Вкл/выкл без пароля при следующей установке" : "Потребуется пароль администратора")
     }
 
-    func setAutoUpdate(_ value: Bool) { autoUpdate = value }
+    func setAutoUpdate(_ value: Bool) {
+        autoUpdate = value
+        UserDefaults.standard.set(value, forKey: "zprt.autoUpdate")
+    }
 
     func applyConfig(_ draft: EngineConfig, lists: [ListFile: String]) async {
         guard busy == nil else { return }
@@ -309,11 +323,32 @@ final class AppState {
     }
 
     func checkForUpdates() async {
-        pushNotice("Версия \(appVersion)")
+        guard !checkingForUpdate else { return }
+        checkingForUpdate = true
+        let version = appVersion
+        let release = await Task.detached { await Updater.checkLatestRelease(currentVersion: version) }.value
+        checkingForUpdate = false
+        if let release {
+            availableRelease = release
+            pushNotice("Доступна версия \(Updater.displayVersion(release.tagName))")
+        } else {
+            availableRelease = nil
+            pushNotice("Установлена последняя версия (\(appVersion))")
+        }
     }
 
     func updateNow() async {
-        pushNotice("Обновления — через новый билд ZPRT Connection")
+        guard let release = availableRelease, !updatingNow else { return }
+        updatingNow = true
+        do {
+            try await Task.detached { try await Updater.install(release) }.value
+            pushNotice("Обновление устанавливается, приложение перезапустится…")
+            try? await Task.sleep(for: .seconds(1))
+            NSApp.terminate(nil)
+        } catch {
+            updatingNow = false
+            pushNotice(error.localizedDescription, error: true)
+        }
     }
 
     func launchDiscordBypassingUpdater() async {
@@ -340,6 +375,29 @@ final class AppState {
         } catch {
             pushNotice("Не удалось перезапустить Discord: \(error.localizedDescription)", error: true)
         }
+    }
+
+    func copyDiagnostics() {
+        var lines: [String] = [
+            "ZPRT Connection \(appVersion)",
+            "macOS \(ProcessInfo.processInfo.operatingSystemVersionString)",
+            "Установлен: \(installed ? "да" : "нет") · Работает: \(running ? "да" : "нет")",
+            "Стратегия: \(config.strategyId) · IP-режим: \(config.ipsetMode.rawValue)",
+            "WAN: \(prerequisites.wanInterface ?? "—")",
+        ]
+        let logURL = URL(fileURLWithPath: "/Library/Application Support/Zapret/engine.log")
+        if let log = try? String(contentsOf: logURL, encoding: .utf8) {
+            let tail = log.split(whereSeparator: \.isNewline).suffix(30)
+            if !tail.isEmpty {
+                lines.append("")
+                lines.append("--- engine.log (последние строки) ---")
+                lines.append(contentsOf: tail.map(String.init))
+            }
+        }
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(lines.joined(separator: "\n"), forType: .string)
+        pushNotice("Диагностика скопирована в буфер обмена")
     }
 
     func resetList(_ file: ListFile) {

@@ -7,6 +7,7 @@ DIST="$ROOT/dist"
 APP_NAME="ZPRT Connection.app"
 PRODUCT="$DD/Build/Products/Release/$APP_NAME"
 DMG_NAME="ZPRT-Connection-macOS.dmg"
+ZIP_NAME="ZPRT-Connection-macOS.zip"
 VOL_NAME="ZPRT Connection"
 STAGE="$DIST/dmg-stage"
 
@@ -47,6 +48,11 @@ rm -rf "$STAGE"
 # Keep unpacked app for local smoke tests
 ditto "$PRODUCT" "$DIST/$APP_NAME"
 
+echo "==> Creating $ZIP_NAME (used by the in-app updater)..."
+rm -f "$DIST/$ZIP_NAME"
+/usr/bin/ditto -c -k --keepParent "$PRODUCT" "$DIST/$ZIP_NAME"
+
 echo "==> Done:"
-ls -lh "$DIST/$DMG_NAME"
+ls -lh "$DIST/$DMG_NAME" "$DIST/$ZIP_NAME"
 echo "$DIST/$DMG_NAME"
+echo "$DIST/$ZIP_NAME"

@@ -6,6 +6,7 @@ BASE='/Library/Application Support/Zapret'
 ANCHOR=com.apple/zapret
 TOKEN_FILE=/var/run/zapret.pf-token
 CONF_FILE=/var/run/zapret.conf
+KEEPINIT_FILE=/var/db/zapret.keepinit
 ENGINE_PID=
 WATCHDOG_PID=
 LOG_MAX_BYTES=5242880
@@ -27,6 +28,17 @@ release_pf_token() {
     fi
 }
 
+restore_keepinit() {
+    if [ -s "$KEEPINIT_FILE" ]; then
+        SAVED=$(/bin/cat "$KEEPINIT_FILE" 2>/dev/null || true)
+        case "$SAVED" in
+            ''|*[!0-9]*) ;;
+            *) /usr/sbin/sysctl -w net.inet.tcp.keepinit="$SAVED" >/dev/null 2>&1 || true ;;
+        esac
+        /bin/rm -f "$KEEPINIT_FILE"
+    fi
+}
+
 rotate_log() {
     LOG="$BASE/engine.log"
     if [ -f "$LOG" ]; then
@@ -45,6 +57,7 @@ cleanup() {
     if [ -n "$WATCHDOG_PID" ]; then wait "$WATCHDOG_PID" >/dev/null 2>&1 || true; fi
     if [ -n "$ENGINE_PID" ]; then wait "$ENGINE_PID" >/dev/null 2>&1 || true; fi
     release_pf_token
+    restore_keepinit
 }
 
 trap cleanup EXIT INT TERM HUP
@@ -91,6 +104,7 @@ if [ -L "$DATA_ROOT/selected-strategy" ] || [ ! -f "$DATA_ROOT/selected-strategy
 if [ -L "$DATA_ROOT/ipset-mode" ] || [ ! -f "$DATA_ROOT/ipset-mode" ]; then exit 1; fi
 if [ -L "$DATA_ROOT/discord-udp" ]; then exit 1; fi
 if [ -L "$DATA_ROOT/block-quic" ]; then exit 1; fi
+if [ -L "$DATA_ROOT/fast-keepinit" ]; then exit 1; fi
 
 STRATEGY=$(/usr/bin/tr -d '[:space:]' <"$DATA_ROOT/selected-strategy" 2>/dev/null || true)
 if ! printf '%s\n' "$STRATEGY" | /usr/bin/grep -Eq '^general(-[a-z0-9]+)*$' || [ ! -f "$BASE/strategies/$STRATEGY.conf.in" ]; then
@@ -144,6 +158,23 @@ fi
 BLOCK_QUIC=1
 if [ -f "$DATA_ROOT/block-quic" ]; then
     BLOCK_QUIC=$(/usr/bin/tr -d '[:space:]' <"$DATA_ROOT/block-quic" 2>/dev/null || echo 1)
+fi
+
+FAST_KEEPINIT=1
+if [ -f "$DATA_ROOT/fast-keepinit" ]; then
+    FAST_KEEPINIT=$(/usr/bin/tr -d '[:space:]' <"$DATA_ROOT/fast-keepinit" 2>/dev/null || echo 1)
+fi
+# A fully blocked (not just DPI-throttled) connection otherwise sits for the
+# default ~75s TCP handshake timeout before the app gives up and retries.
+# Dropping it to 7s while the engine runs makes that failure surface fast.
+if [ "$FAST_KEEPINIT" != 0 ]; then
+    if [ ! -s "$KEEPINIT_FILE" ]; then
+        /usr/sbin/sysctl -n net.inet.tcp.keepinit >"$KEEPINIT_FILE" 2>/dev/null || true
+        /bin/chmod 0600 "$KEEPINIT_FILE" 2>/dev/null || true
+    fi
+    /usr/sbin/sysctl -w net.inet.tcp.keepinit=7000 >/dev/null 2>&1 || true
+else
+    restore_keepinit
 fi
 
 /usr/bin/sed -e "s|@BASE@|$BASE|g" -e "s|@LISTS@|$RUNTIME_LISTS|g" -e "s|@IPSET@|$IPSET|g" \

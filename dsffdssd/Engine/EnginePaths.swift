@@ -19,6 +19,7 @@ nonisolated enum EnginePaths {
     static var ipsetModeFile: URL { userDataRoot.appendingPathComponent("ipset-mode") }
     static var discordUdpFile: URL { userDataRoot.appendingPathComponent("discord-udp") }
     static var blockQuicFile: URL { userDataRoot.appendingPathComponent("block-quic") }
+    static var fastKeepinitFile: URL { userDataRoot.appendingPathComponent("fast-keepinit") }
     static var listsDir: URL { userDataRoot.appendingPathComponent("lists") }
     static var prefsFile: URL { userDataRoot.appendingPathComponent("zprt-prefs.json") }
 
@@ -69,7 +70,7 @@ nonisolated enum EnginePaths {
     }
 }
 
-struct CommandResult: Sendable {
+nonisolated struct CommandResult: Sendable {
     let ok: Bool
     let output: String
     var warning: String?
@@ -79,7 +80,7 @@ struct CommandResult: Sendable {
     }
 }
 
-enum EngineError: LocalizedError {
+nonisolated enum EngineError: LocalizedError {
     case cancelled
     case missingPayload
     case failed(String)

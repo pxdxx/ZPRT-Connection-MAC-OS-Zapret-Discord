@@ -120,6 +120,13 @@ struct SettingsView: View {
                 isOn: $draft.blockQuic,
                 enabled: editable
             )
+
+            SwitchRow(
+                label: "Быстрый отказ от заблокированных IP",
+                description: "Снижает системный TCP keepinit до 7с на время работы обхода, чтобы зависшие соединения быстрее срывались на повтор",
+                isOn: $draft.fastKeepinit,
+                enabled: editable
+            )
         }
     }
 
@@ -208,21 +215,56 @@ struct SettingsView: View {
             }
 
             if systemAdvanced {
-                SwitchRow(
-                    label: "Автообновление",
-                    isOn: Binding(
-                        get: { state.autoUpdate },
-                        set: { state.setAutoUpdate($0) }
-                    ),
-                    enabled: editable
-                )
-                GhostButton(title: "Проверить обновления", enabled: editable) {
-                    Task { await state.checkForUpdates() }
-                }
+                updatesCard
+            }
+
+            GhostButton(title: "Скопировать диагностику", enabled: true) {
+                state.copyDiagnostics()
             }
 
             TextActionButton(title: "Удалить…", danger: true, enabled: editable) {
                 askUninstall = true
+            }
+        }
+    }
+
+    private var updatesCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            SwitchRow(
+                label: "Автообновление",
+                description: "Тихая проверка раз в час, установка — только после подтверждения",
+                isOn: Binding(
+                    get: { state.autoUpdate },
+                    set: { state.setAutoUpdate($0) }
+                ),
+                enabled: editable
+            )
+
+            GhostButton(
+                title: state.checkingForUpdate ? "Проверка…" : "Проверить обновления",
+                enabled: editable && !state.checkingForUpdate
+            ) {
+                Task { await state.checkForUpdates() }
+            }
+
+            if let release = state.availableRelease {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Доступна версия \(Updater.displayVersion(release.tagName))")
+                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                        .foregroundStyle(palette.sage)
+
+                    AccentButton(
+                        title: state.updatingNow ? "Устанавливается…" : "Установить и перезапустить",
+                        enabled: editable && !state.updatingNow
+                    ) {
+                        Task { await state.updateNow() }
+                    }
+                }
+                .padding(12)
+                .background(
+                    RoundedRectangle(cornerRadius: OutpostDimens.radiusField, style: .continuous)
+                        .fill(palette.sage.opacity(0.12))
+                )
             }
         }
     }

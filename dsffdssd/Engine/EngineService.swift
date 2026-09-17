@@ -82,6 +82,9 @@ nonisolated enum EngineService {
         if !fm.fileExists(atPath: EnginePaths.blockQuicFile.path) {
             try "1".write(to: EnginePaths.blockQuicFile, atomically: true, encoding: .utf8)
         }
+        if !fm.fileExists(atPath: EnginePaths.fastKeepinitFile.path) {
+            try "1".write(to: EnginePaths.fastKeepinitFile, atomically: true, encoding: .utf8)
+        }
     }
 
     static func readConfig() -> EngineConfig {
@@ -94,7 +97,9 @@ nonisolated enum EngineService {
             .trimmingCharacters(in: .whitespacesAndNewlines) != "0"
         let quic = ((try? String(contentsOf: EnginePaths.blockQuicFile, encoding: .utf8)) ?? "1")
             .trimmingCharacters(in: .whitespacesAndNewlines) != "0"
-        return EngineConfig(strategyId: strategy, ipsetMode: mode, discordUdp: discord, blockQuic: quic)
+        let fastKeepinit = ((try? String(contentsOf: EnginePaths.fastKeepinitFile, encoding: .utf8)) ?? "1")
+            .trimmingCharacters(in: .whitespacesAndNewlines) != "0"
+        return EngineConfig(strategyId: strategy, ipsetMode: mode, discordUdp: discord, blockQuic: quic, fastKeepinit: fastKeepinit)
     }
 
     static func writeConfig(_ config: EngineConfig) throws {
@@ -103,6 +108,7 @@ nonisolated enum EngineService {
         try config.ipsetMode.rawValue.write(to: EnginePaths.ipsetModeFile, atomically: true, encoding: .utf8)
         try (config.discordUdp ? "1" : "0").write(to: EnginePaths.discordUdpFile, atomically: true, encoding: .utf8)
         try (config.blockQuic ? "1" : "0").write(to: EnginePaths.blockQuicFile, atomically: true, encoding: .utf8)
+        try (config.fastKeepinit ? "1" : "0").write(to: EnginePaths.fastKeepinitFile, atomically: true, encoding: .utf8)
     }
 
     static func readLists() -> [ListFile: String] {

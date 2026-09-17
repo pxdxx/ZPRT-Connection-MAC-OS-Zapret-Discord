@@ -63,13 +63,15 @@ nonisolated struct EngineConfig: Equatable {
     var ipsetMode: IpsetMode
     var discordUdp: Bool
     var blockQuic: Bool
+    var fastKeepinit: Bool
 
     /// Discord-first defaults out of the box.
     static let `default` = EngineConfig(
         strategyId: "general-simple-fake",
         ipsetMode: .loaded,
         discordUdp: true,
-        blockQuic: true
+        blockQuic: true,
+        fastKeepinit: true
     )
 }
 
@@ -133,7 +135,32 @@ nonisolated enum ListFile: String, CaseIterable, Identifiable {
         switch self {
         case .generalUser:
             """
-            # свои домены — по одному на строку
+            # Discord — уже подключено из коробки, ничего добавлять не нужно.
+            # Свои домены можно дописывать ниже, по одному на строку.
+            dis.gd
+            discord-attachments-uploads-prd.storage.googleapis.com
+            discord.app
+            discord.co
+            discord.com
+            discord.design
+            discord.dev
+            discord.gift
+            discord.gifts
+            discord.gg
+            discord.media
+            discord.new
+            discord.store
+            discord.status
+            discord-activities.com
+            discordactivities.com
+            discordapp.com
+            discordapp.net
+            discordcdn.com
+            discordmerch.com
+            discordpartygames.com
+            discordsays.com
+            discordsez.com
+            discordstatus.com
             """
         case .general:
             """
