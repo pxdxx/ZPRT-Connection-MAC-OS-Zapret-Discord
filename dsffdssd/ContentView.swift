@@ -63,9 +63,12 @@ struct ContentView: View {
         )) {
             if let release = state.availableRelease {
                 UpdateAvailableSheet(
+                    isDarkTheme: state.isDarkTheme,
                     release: release,
-                    updating: state.updatingNow,
-                    onUpdate: { Task { await state.updateNow() } },
+                    onUpdate: {
+                        state.openLatestReleasePage()
+                        dismissedUpdateTag = release.tagName
+                    },
                     onLater: { dismissedUpdateTag = release.tagName }
                 )
             }

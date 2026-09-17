@@ -1,10 +1,12 @@
 import SwiftUI
 
 struct DiagnosticsSheet: View {
-    @Environment(\.studioPalette) private var palette
     @Environment(\.dismiss) private var dismiss
+    let isDarkTheme: Bool
     let text: String
     let onCopy: (String) -> Void
+
+    private var palette: StudioPalette { isDarkTheme ? .dark : .light }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -39,5 +41,7 @@ struct DiagnosticsSheet: View {
         .padding(20)
         .frame(width: 420, height: 480)
         .background(palette.canvas)
+        .environment(\.studioPalette, palette)
+        .preferredColorScheme(isDarkTheme ? .dark : .light)
     }
 }

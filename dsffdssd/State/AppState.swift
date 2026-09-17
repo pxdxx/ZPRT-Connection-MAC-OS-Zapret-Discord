@@ -20,7 +20,6 @@ final class AppState {
     var appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
     var availableRelease: GitHubRelease?
     var checkingForUpdate = false
-    var updatingNow = false
 
     var prerequisites = Prerequisites.demo
     var strategies: [StrategyEntry] = .bundled
@@ -29,6 +28,8 @@ final class AppState {
     var listsRevision: Int = 0
     var isDarkTheme: Bool = UserDefaults.standard.bool(forKey: "zprt.isDarkTheme")
     var ipsetEntryCount: Int = 0
+    var discordAppFound = false
+    var discordUpdaterEnabled = true
 
     private var tickTask: Task<Void, Never>?
     private var pollTask: Task<Void, Never>?
@@ -84,10 +85,12 @@ final class AppState {
     func bootstrap() {
         guard !didBootstrap else {
             refreshStatus()
+            refreshDiscordUpdaterState()
             notifyTray()
             return
         }
         didBootstrap = true
+        refreshDiscordUpdaterState()
         strategies = EngineService.loadStrategies()
         defaultListContents = EngineService.defaultLists()
         // Seed lists only if missing — never overwrite saved strategy/config on relaunch.
@@ -337,43 +340,37 @@ final class AppState {
         }
     }
 
-    func updateNow() async {
-        guard let release = availableRelease, !updatingNow else { return }
-        updatingNow = true
-        do {
-            try await Task.detached { try await Updater.install(release) }.value
-            pushNotice("Обновление устанавливается, приложение перезапустится…")
-            try? await Task.sleep(for: .seconds(1))
-            NSApp.terminate(nil)
-        } catch {
-            updatingNow = false
-            pushNotice(error.localizedDescription, error: true)
-        }
+    func openLatestReleasePage() {
+        NSWorkspace.shared.open(availableRelease?.htmlURL ?? Updater.releasesPageURL)
     }
 
-    func launchDiscordBypassingUpdater() async {
-        let bundleId = "com.hnc.Discord"
-        let running = NSRunningApplication.runningApplications(withBundleIdentifier: bundleId)
-        if !running.isEmpty {
-            for app in running { app.terminate() }
-            for _ in 0..<25 {
-                try? await Task.sleep(for: .milliseconds(200))
-                if NSRunningApplication.runningApplications(withBundleIdentifier: bundleId).isEmpty { break }
-            }
+    /// Discord's own updater can't run if it can't overwrite its own app
+    /// bundle, so we (un)lock write access on Discord.app itself — a
+    /// persistent toggle, unlike relaunching once with --disable-updater.
+    func refreshDiscordUpdaterState() {
+        guard let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.hnc.Discord") else {
+            discordAppFound = false
+            return
         }
-        guard let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleId) else {
+        discordAppFound = true
+        discordUpdaterEnabled = FileManager.default.isWritableFile(atPath: appURL.path)
+    }
+
+    func toggleDiscordUpdater() async {
+        guard let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.hnc.Discord") else {
             pushNotice("Discord.app не найден", error: true)
             return
         }
-        let binary = appURL.appendingPathComponent("Contents/MacOS/Discord")
-        let task = Process()
-        task.executableURL = binary
-        task.arguments = ["--disable-updater"]
-        do {
-            try task.run()
-            pushNotice("Discord перезапущен без апдейтера")
-        } catch {
-            pushNotice("Не удалось перезапустить Discord: \(error.localizedDescription)", error: true)
+        let enable = !discordUpdaterEnabled
+        let path = appURL.path
+        let result = await Task.detached {
+            Shell.run(["/bin/chmod", "-R", enable ? "u+w" : "a-w", path], timeoutSeconds: 30)
+        }.value
+        if result.ok {
+            discordUpdaterEnabled = enable
+            pushNotice(enable ? "Апдейтер Discord включён" : "Апдейтер Discord выключен")
+        } else {
+            pushNotice("Не удалось изменить права доступа Discord.app", error: true)
         }
     }
 

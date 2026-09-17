@@ -11,9 +11,9 @@ struct HomeView: View {
 
             heroBoard
 
-            if state.installed {
-                GhostButton(title: "Discord без апдейтера") {
-                    Task { await state.launchDiscordBypassingUpdater() }
+            if state.discordAppFound {
+                GhostButton(title: state.discordUpdaterEnabled ? "Выключить апдейтер Discord" : "Включить апдейтер Discord") {
+                    Task { await state.toggleDiscordUpdater() }
                 }
             }
 

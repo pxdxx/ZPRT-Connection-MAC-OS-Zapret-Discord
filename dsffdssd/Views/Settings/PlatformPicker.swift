@@ -1,10 +1,12 @@
 import SwiftUI
 
 struct PlatformPickerSheet: View {
-    @Environment(\.studioPalette) private var palette
     @Environment(\.dismiss) private var dismiss
+    let isDarkTheme: Bool
     let alreadyAdded: (PopularPlatform) -> Bool
     let onToggle: (PopularPlatform) -> Void
+
+    private var palette: StudioPalette { isDarkTheme ? .dark : .light }
 
     private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
@@ -36,6 +38,8 @@ struct PlatformPickerSheet: View {
         .padding(20)
         .frame(width: 380, height: 480)
         .background(palette.canvas)
+        .environment(\.studioPalette, palette)
+        .preferredColorScheme(isDarkTheme ? .dark : .light)
     }
 
     private func platformTile(_ platform: PopularPlatform) -> some View {

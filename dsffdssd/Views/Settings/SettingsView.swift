@@ -192,7 +192,7 @@ struct SettingsView: View {
             }
         }
         .sheet(isPresented: $showPlatformPicker) {
-            PlatformPickerSheet(alreadyAdded: platformAlreadyAdded, onToggle: togglePlatform)
+            PlatformPickerSheet(isDarkTheme: state.isDarkTheme, alreadyAdded: platformAlreadyAdded, onToggle: togglePlatform)
         }
     }
 
@@ -223,7 +223,7 @@ struct SettingsView: View {
                 showDiagnostics = true
             }
             .sheet(isPresented: $showDiagnostics) {
-                DiagnosticsSheet(text: state.diagnosticsText(), onCopy: state.copyToClipboard)
+                DiagnosticsSheet(isDarkTheme: state.isDarkTheme, text: state.diagnosticsText(), onCopy: state.copyToClipboard)
             }
 
             TextActionButton(title: "Удалить…", danger: true, enabled: editable) {
@@ -236,7 +236,7 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 10) {
             SwitchRow(
                 label: "Автообновление",
-                description: "Тихая проверка раз в час, установка — только после подтверждения",
+                description: "Тихая проверка раз в час, открывает страницу релиза на GitHub",
                 isOn: Binding(
                     get: { state.autoUpdate },
                     set: { state.setAutoUpdate($0) }
