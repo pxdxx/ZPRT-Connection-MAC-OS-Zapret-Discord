@@ -135,7 +135,6 @@ nonisolated enum ListFile: String, CaseIterable, Identifiable {
         switch self {
         case .generalUser:
             """
-            # Discord — уже подключено из коробки, ничего добавлять не нужно.
             # Свои домены можно дописывать ниже, по одному на строку.
             dis.gd
             discord-attachments-uploads-prd.storage.googleapis.com

@@ -4,9 +4,9 @@
   <img src="docs/app-icon.png" alt="ZPRT Connection icon" width="128" height="128">
 </p>
 
-**ZPRT Connection** — это **zapret-discord для macOS**: приложение, которое поднимает локальный обход DPI для Discord (и YouTube), как привычный [zapret-discord-youtube](https://github.com/Flowseal/zapret-discord-youtube) на Windows.
+**ZPRT Connection** - это **zapret-discord для macOS**: приложение, которое поднимает локальный обход DPI для Discord (и YouTube), как привычный [zapret-discord-youtube](https://github.com/Flowseal/zapret-discord-youtube) на Windows.
 
-На Mac обычный Zapret / zapret-discord почти нереально поставить «из коробки»: нет удобного установщика, куча ручной возни с PF/скриптами, а часть Windows/Linux-сборок на macOS просто не ставится. Этот репозиторий закрывает эту дыру — готовое приложение с движком внутри, установка в один клик **GO**.
+На Mac обычный Zapret / zapret-discord почти нереально поставить «из коробки»: нет удобного установщика, куча ручной возни с PF/скриптами, а часть Windows/Linux-сборок на macOS просто не ставится. Этот репозиторий закрывает эту дыру - готовое приложение с движком внутри, установка в один клик **GO**.
 
 > Developer: [@pxdxz](https://t.me/pxdxz)
 
@@ -16,7 +16,7 @@
 
 ## Зачем это нужно
 
-Провайдеры режут Discord и YouTube через DPI. VPN не всегда нужен: достаточно локального обхода, как у Zapret. На Windows для этого обычно ставят **zapret-discord**. На macOS раньше приходилось собирать всё руками — теперь есть ZPRT Connection.
+Провайдеры режут Discord и YouTube через DPI. VPN не всегда нужен: достаточно локального обхода, как у Zapret. На Windows для этого обычно ставят **zapret-discord**. На macOS раньше приходилось собирать всё руками - теперь есть ZPRT Connection.
 
 ## Что умеет
 
@@ -28,13 +28,23 @@
 
 ## Скачать
 
-Готовые сборки — в [Releases](https://github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/releases).
+Готовые сборки - в [Releases](https://github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/releases).
 
 1. Скачайте `ZPRT-Connection-macOS.dmg`
 2. Откройте DMG и перетащите `ZPRT Connection.app` в **Applications**
-3. При предупреждении Gatekeeper: **правый клик → Открыть** (или «Всё равно открыть» в настройках безопасности)
-4. Нажмите **GO** — один раз введите пароль администратора
+3. Запустите приложение - см. **«Обход блокировки Gatekeeper»** ниже
+4. Нажмите **GO** - один раз введите пароль администратора
 5. После установки повторно ставить движок при перезапуске **не нужно**
+
+### Обход блокировки Gatekeeper
+
+Приложение не подписано платным сертификатом Apple Developer, поэтому при первом запуске macOS его блокирует. Это нормально, чинится один раз:
+
+- При первом запуске появится окно с кнопками **«В корзину»** и **«Отмена»** - нажмите **«Отмена»**, чтобы просто закрыть окно
+- Откройте **Системные настройки → Конфиденциальность и безопасность**
+- Пролистайте страницу в самый низ
+- Там будет кнопка **«Всё равно открыть»** - нажмите её
+- Подтвердите запуск - дальше приложение открывается как обычно, без повторных предупреждений
 
 ### Требования
 
@@ -74,7 +84,7 @@ open "/tmp/ZPRTBuild/Build/Products/Release/ZPRT Connection.app"
 # → dist/ZPRT-Connection-macOS.dmg
 ```
 
-> Не собирайте DerivedData на Desktop/iCloud — xattrs ломают codesign. Используйте `/tmp/...`.
+> Не собирайте DerivedData на Desktop/iCloud - xattrs ломают codesign. Используйте `/tmp/...`.
 
 ## Disclaimer
 
