@@ -16,7 +16,7 @@
 
 [![Latest](https://img.shields.io/github/downloads/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/latest/total?style=for-the-badge&color=ff2d9b&label=%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D1%8F%D1%8F%20%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%8F)](https://github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/releases/latest)
 [![Stars](https://img.shields.io/github/stars/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord?style=for-the-badge&color=ffb84d&label=%D0%B7%D0%B2%D1%91%D0%B7%D0%B4%D1%8B)](https://github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/stargazers)
-[![Views](https://hits.sh/github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord.svg?style=for-the-badge&label=%D0%BF%D1%80%D0%BE%D1%81%D0%BC%D0%BE%D1%82%D1%80%D1%8B&color=8b6cff)](https://hits.sh/github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/)
+[![Views](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fpxdxx%2FZPRT-Connection-MAC-OS-Zapret-Discord%2Fbadges%2Fviews.json&style=for-the-badge)](#статистика)
 [![Downloads](https://img.shields.io/github/downloads/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/total?style=for-the-badge&color=5ee2a8&label=%D1%81%D0%BA%D0%B0%D1%87%D0%B0%D0%BD%D0%BE)](https://github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/releases)
 
 <a href="https://github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/releases/latest/download/ZPRT-Connection-macOS.dmg">
@@ -94,7 +94,7 @@ xattr -cr "/Applications/ZPRT Connection.app"
 
 </div>
 
-<sub>Крупные счётчики в шапке: скачивания берутся из GitHub Releases и считают каждую загрузку файла, а не уникальных людей. Просмотры считают открытия этой страницы.</sub>
+<sub>Крупные счётчики в шапке: скачивания берутся из GitHub Releases и считают каждую загрузку файла, а не уникальных людей. Просмотры и уникальные посетители за последние 14 дней берутся из официальной статистики GitHub (Traffic) и обновляются раз в сутки.</sub>
 
 ## Как это устроено
 
