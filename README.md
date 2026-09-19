@@ -13,12 +13,15 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-8b6cff?style=flat-square)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-macOS%2014%2B-b388ff?style=flat-square&logo=apple&logoColor=white)](#скачать)
 [![Build](https://img.shields.io/github/actions/workflow/status/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/build.yml?style=flat-square&label=build)](https://github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/actions/workflows/build.yml)
-[![Downloads](https://img.shields.io/github/downloads/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/total?style=flat-square&color=5ee2a8&label=downloads)](https://github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/releases)
-[![Stars](https://img.shields.io/github/stars/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord?style=flat-square&color=ffb84d)](https://github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/stargazers)
 
 <a href="https://github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/releases/latest/download/ZPRT-Connection-macOS.dmg">
   <img src="https://img.shields.io/badge/%D0%A1%D0%BA%D0%B0%D1%87%D0%B0%D1%82%D1%8C-macOS%20.dmg-ff2d9b?style=for-the-badge&logo=apple&logoColor=white" alt="Скачать для macOS">
 </a>
+
+[![Downloads](https://img.shields.io/github/downloads/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/total?style=for-the-badge&color=5ee2a8&label=%D1%81%D0%BA%D0%B0%D1%87%D0%B0%D0%BD%D0%BE)](https://github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/releases)
+[![Latest](https://img.shields.io/github/downloads/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/latest/total?style=for-the-badge&color=ff2d9b&label=%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D1%8F%D1%8F%20%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%8F)](https://github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/releases/latest)
+[![Stars](https://img.shields.io/github/stars/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord?style=for-the-badge&color=ffb84d&label=%D0%B7%D0%B2%D1%91%D0%B7%D0%B4%D1%8B)](https://github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/stargazers)
+[![Views](https://hits.sh/github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord.svg?style=for-the-badge&label=%D0%BF%D1%80%D0%BE%D1%81%D0%BC%D0%BE%D1%82%D1%80%D1%8B&color=8b6cff)](https://hits.sh/github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/)
 
 [Скачать](#скачать) · [Возможности](#возможности) · [Статистика](#статистика) · [Как это устроено](#как-это-устроено) · [Сборка](#сборка-из-исходников) · [Ограничения](#ограничения)
 
@@ -83,11 +86,6 @@ xattr -cr "/Applications/ZPRT Connection.app"
 
 <div align="center">
 
-[![Downloads](https://img.shields.io/github/downloads/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/total?style=for-the-badge&color=5ee2a8&label=%D1%81%D0%BA%D0%B0%D1%87%D0%B0%D0%BD%D0%BE)](https://github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/releases)
-[![Latest](https://img.shields.io/github/downloads/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/latest/total?style=for-the-badge&color=ff2d9b&label=%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D1%8F%D1%8F%20%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%8F)](https://github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/releases/latest)
-[![Stars](https://img.shields.io/github/stars/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord?style=for-the-badge&color=ffb84d&label=%D0%B7%D0%B2%D1%91%D0%B7%D0%B4%D1%8B)](https://github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/stargazers)
-[![Views](https://hits.sh/github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord.svg?style=for-the-badge&label=%D0%BF%D1%80%D0%BE%D1%81%D0%BC%D0%BE%D1%82%D1%80%D1%8B&color=8b6cff)](https://hits.sh/github.com/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord/)
-
 ![Last commit](https://img.shields.io/github/last-commit/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord?style=flat-square&color=b388ff)
 ![Repo size](https://img.shields.io/github/repo-size/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord?style=flat-square&color=b388ff)
 ![Language](https://img.shields.io/github/languages/top/pxdxx/ZPRT-Connection-MAC-OS-Zapret-Discord?style=flat-square&color=b388ff)
@@ -96,7 +94,7 @@ xattr -cr "/Applications/ZPRT Connection.app"
 
 </div>
 
-<sub>Счётчик просмотров считает открытия этой страницы. Числа скачиваний берутся напрямую из GitHub Releases.</sub>
+<sub>Крупные счётчики в шапке: скачивания берутся из GitHub Releases и считают каждую загрузку файла, а не уникальных людей. Просмотры считают открытия этой страницы.</sub>
 
 ## Как это устроено
 
