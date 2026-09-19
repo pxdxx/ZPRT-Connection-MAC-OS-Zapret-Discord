@@ -29,6 +29,8 @@ final class AppState {
     var isDarkTheme: Bool = UserDefaults.standard.bool(forKey: "zprt.isDarkTheme")
     var ipsetEntryCount: Int = 0
     var discordAppFound = false
+    var dns: DNSState?
+    var dnsBusy = false
     var discordUpdaterEnabled = true
 
     private var tickTask: Task<Void, Never>?
@@ -392,6 +394,28 @@ final class AppState {
             }
         }
         return lines.joined(separator: "\n")
+    }
+
+    func refreshDNS() async {
+        dns = await Task.detached { DNSService.read() }.value
+    }
+
+    func setDNS(_ choice: DNSChoice) async {
+        guard !dnsBusy, let current = dns, current.choice != choice else { return }
+        dnsBusy = true
+        let service = current.service
+        do {
+            let result = try await Task.detached { try DNSService.apply(choice, service: service) }.value
+            if result.ok {
+                pushNotice(choice == .system ? "DNS сброшен на автоматический" : "DNS: \(choice.title)")
+            } else {
+                pushNotice(result.lastLine.isEmpty ? "Не удалось сменить DNS" : result.lastLine, error: true)
+            }
+        } catch {
+            pushNotice(error.localizedDescription, error: true)
+        }
+        await refreshDNS()
+        dnsBusy = false
     }
 
     func copyToClipboard(_ text: String) {

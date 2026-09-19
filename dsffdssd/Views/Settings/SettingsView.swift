@@ -22,6 +22,7 @@ struct SettingsView: View {
                 header
                 actionCard
                 antiDpiSection
+                dnsSection
                 listsSection
                 systemSection
             }
@@ -29,6 +30,7 @@ struct SettingsView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear(perform: syncFromState)
+        .task { await state.refreshDNS() }
         .onChange(of: state.config) { _, _ in syncFromState() }
         .onChange(of: state.listsRevision) { _, _ in syncFromState() }
         .onChange(of: state.listContents) { _, _ in syncFromState() }
@@ -160,6 +162,31 @@ struct SettingsView: View {
                     .foregroundStyle(palette.inkSoft)
             }
         }
+    }
+
+    private var dnsSection: some View {
+        SettingsSection(title: "DNS", accent: palette.sky) {
+            ForEach(DNSChoice.allCases) { choice in
+                ChoiceRow(
+                    label: choice.title,
+                    selected: state.dns?.choice == choice,
+                    enabled: state.dns != nil && !state.dnsBusy
+                ) {
+                    Task { await state.setDNS(choice) }
+                }
+            }
+
+            Text(dnsStatus)
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundStyle(palette.inkSoft)
+        }
+    }
+
+    private var dnsStatus: String {
+        if state.dnsBusy { return "Применяется…" }
+        guard let dns = state.dns else { return "Активная сеть не найдена" }
+        let servers = dns.servers.isEmpty ? "автоматически" : dns.servers.joined(separator: ", ")
+        return "\(dns.service): \(servers)" + (dns.choice == nil ? " (свой)" : "")
     }
 
     private var listsSection: some View {

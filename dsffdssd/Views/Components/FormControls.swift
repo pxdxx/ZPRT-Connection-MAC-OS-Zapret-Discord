@@ -74,6 +74,7 @@ struct ChoiceRow: View {
     @Environment(\.studioPalette) private var palette
     let label: String
     let selected: Bool
+    var enabled: Bool = true
     let action: () -> Void
 
     var body: some View {
@@ -102,6 +103,8 @@ struct ChoiceRow: View {
             )
         }
         .buttonStyle(.plain)
+        .disabled(!enabled)
+        .opacity(enabled ? 1 : 0.55)
     }
 }
 
