@@ -1,0 +1,31 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Release
+        run: |
+          xcodebuild \
+            -project dsffdssd.xcodeproj \
+            -scheme dsffdssd \
+            -configuration Release \
+            -derivedDataPath /tmp/ZPRTBuild \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_ALLOWED=YES \
+            build
+
+      - name: Check app bundle
+        run: |
+          APP="/tmp/ZPRTBuild/Build/Products/Release/ZPRT Connection.app"
+          test -d "$APP"
+          test -x "$APP/Contents/MacOS/ZPRT Connection"
+          codesign --verify --deep --strict "$APP"
