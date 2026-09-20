@@ -56,7 +56,8 @@ final class AppState {
     var subline: String {
         if !installed { return "Нажмите GO — установка под Discord одним шагом" }
         if running {
-            return "\(config.strategyId) · \(config.ipsetMode.rawValue) · Discord UDP \(config.discordUdp ? "on" : "off")"
+            let games = config.gameFilter.isEnabled && config.ipsetMode != .none ? " · игры \(config.gameFilter.label)" : ""
+            return "\(config.strategyId) · \(config.ipsetMode.rawValue) · Discord UDP \(config.discordUdp ? "on" : "off")\(games)"
         }
         return "Нажмите GO, чтобы включить обход"
     }
@@ -381,7 +382,7 @@ final class AppState {
             "ZPRT Connection \(appVersion)",
             "macOS \(ProcessInfo.processInfo.operatingSystemVersionString)",
             "Установлен: \(installed ? "да" : "нет") · Работает: \(running ? "да" : "нет")",
-            "Стратегия: \(config.strategyId) · IP-режим: \(config.ipsetMode.rawValue)",
+            "Стратегия: \(config.strategyId) · IP-режим: \(config.ipsetMode.rawValue) · Game Filter: \(config.gameFilter.rawValue)",
             "WAN: \(prerequisites.wanInterface ?? "—")",
         ]
         let logURL = URL(fileURLWithPath: "/Library/Application Support/Zapret/engine.log")

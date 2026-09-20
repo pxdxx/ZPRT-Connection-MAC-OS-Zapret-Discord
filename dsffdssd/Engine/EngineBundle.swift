@@ -34,7 +34,9 @@ nonisolated enum EngineBundle {
         let binFiles = [
             "utunws",
             "ACTIVE_DISCORD_UDP.bin",
+            "ACTIVE_GAME_UDP.bin",
             "quic_initial_www_google_com.bin",
+            "quic_initial_4pda_to.bin",
             "stun.bin", "stun2.bin",
             "tls_clienthello_4pda_to.bin",
             "tls_clienthello_max_ru.bin",

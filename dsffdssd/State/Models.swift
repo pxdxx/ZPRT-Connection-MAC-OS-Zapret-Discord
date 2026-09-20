@@ -34,7 +34,7 @@ nonisolated enum IpsetMode: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .none: "Выкл — только домены"
+        case .none: "Выкл - только домены (empty)"
         case .loaded: "Пакетные IP (рекомендуется)"
         case .any: "Расширенный IP-режим"
         }
@@ -43,12 +43,53 @@ nonisolated enum IpsetMode: String, CaseIterable, Identifiable {
     var hint: String {
         switch self {
         case .none:
-            "Обход только по доменам из списков. IP-файлы не используются."
+            "Обход только по доменам из списков, IP-список не используется (и игровой фильтр тоже). Включите, если игра или сервис, которые работают без обхода, перестали грузиться."
         case .loaded:
             "Берутся IP из пакетного ipset-all.txt (кладется при первой установке). Оптимально для Discord."
         case .any:
             "Более широкий охват по IP. Может дать лишнюю нагрузку."
         }
+    }
+}
+
+/// Flowseal "Game Filter": also runs the bypass on high TCP/UDP ports, but only for
+/// IPs from the ipset. Off by default because it breaks some games (Dota, etc.).
+nonisolated enum GameFilterMode: String, CaseIterable, Identifiable {
+    case disabled
+    case all
+    case tcp
+    case udp
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .disabled: "Выкл"
+        case .all: "TCP и UDP"
+        case .tcp: "Только TCP"
+        case .udp: "Только UDP"
+        }
+    }
+
+    var isEnabled: Bool { self != .disabled }
+    var usesTcp: Bool { self == .all || self == .tcp }
+    var usesUdp: Bool { self == .all || self == .udp }
+
+    static let defaultPorts = "1024-65535"
+
+    /// Same rules as run.sh: comma-separated ports or ranges, 1...65535, ascending.
+    static func isValidPorts(_ text: String) -> Bool {
+        let trimmed = text.filter { !$0.isWhitespace }
+        guard !trimmed.isEmpty, trimmed.count <= 120 else { return false }
+        for part in trimmed.split(separator: ",", omittingEmptySubsequences: false) {
+            let bounds = part.split(separator: "-", omittingEmptySubsequences: false)
+            guard bounds.count <= 2,
+                  let low = Int(bounds[0]), let high = Int(bounds.last!),
+                  bounds.allSatisfy({ $0.allSatisfy(\.isASCII) && $0.allSatisfy(\.isNumber) }),
+                  (1...65535).contains(low), (1...65535).contains(high), low <= high
+            else { return false }
+        }
+        return true
     }
 }
 
@@ -64,6 +105,14 @@ nonisolated struct EngineConfig: Equatable {
     var discordUdp: Bool
     var blockQuic: Bool
     var fastKeepinit: Bool
+    var gameFilter: GameFilterMode = .disabled
+    var gameTcpPorts: String = GameFilterMode.defaultPorts
+    var gameUdpPorts: String = GameFilterMode.defaultPorts
+
+    var gamePortsValid: Bool {
+        (!gameFilter.usesTcp || GameFilterMode.isValidPorts(gameTcpPorts))
+            && (!gameFilter.usesUdp || GameFilterMode.isValidPorts(gameUdpPorts))
+    }
 
     /// Discord-first defaults out of the box.
     static let `default` = EngineConfig(

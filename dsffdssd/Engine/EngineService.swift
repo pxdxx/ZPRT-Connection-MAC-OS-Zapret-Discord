@@ -101,6 +101,9 @@ nonisolated enum EngineService {
         if !fm.fileExists(atPath: EnginePaths.fastKeepinitFile.path) {
             try "1".write(to: EnginePaths.fastKeepinitFile, atomically: true, encoding: .utf8)
         }
+        if !fm.fileExists(atPath: EnginePaths.gameFilterFile.path) {
+            try gameFilterFileText(.default).write(to: EnginePaths.gameFilterFile, atomically: true, encoding: .utf8)
+        }
     }
 
     /// Installs from before the Discord starter list existed already have a
@@ -133,7 +136,30 @@ nonisolated enum EngineService {
             .trimmingCharacters(in: .whitespacesAndNewlines) != "0"
         let fastKeepinit = ((try? String(contentsOf: EnginePaths.fastKeepinitFile, encoding: .utf8)) ?? "1")
             .trimmingCharacters(in: .whitespacesAndNewlines) != "0"
-        return EngineConfig(strategyId: strategy, ipsetMode: mode, discordUdp: discord, blockQuic: quic, fastKeepinit: fastKeepinit)
+        var config = EngineConfig(strategyId: strategy, ipsetMode: mode, discordUdp: discord, blockQuic: quic, fastKeepinit: fastKeepinit)
+        let game = readGameFilterValues()
+        config.gameFilter = GameFilterMode(rawValue: game["mode", default: ""]) ?? .disabled
+        if let tcp = game["tcp"], GameFilterMode.isValidPorts(tcp) { config.gameTcpPorts = tcp }
+        if let udp = game["udp"], GameFilterMode.isValidPorts(udp) { config.gameUdpPorts = udp }
+        return config
+    }
+
+    private static func readGameFilterValues() -> [String: String] {
+        let text = (try? String(contentsOf: EnginePaths.gameFilterFile, encoding: .utf8)) ?? ""
+        var values: [String: String] = [:]
+        for line in text.split(whereSeparator: \.isNewline) {
+            let pair = line.split(separator: "=", maxSplits: 1)
+            guard pair.count == 2 else { continue }
+            values[pair[0].trimmingCharacters(in: .whitespaces)] = pair[1].filter { !$0.isWhitespace }
+        }
+        return values
+    }
+
+    private static func gameFilterFileText(_ config: EngineConfig) -> String {
+        // An invalid range would make run.sh fall back to the default, so store what will really apply.
+        let tcp = GameFilterMode.isValidPorts(config.gameTcpPorts) ? config.gameTcpPorts.filter { !$0.isWhitespace } : GameFilterMode.defaultPorts
+        let udp = GameFilterMode.isValidPorts(config.gameUdpPorts) ? config.gameUdpPorts.filter { !$0.isWhitespace } : GameFilterMode.defaultPorts
+        return "mode=\(config.gameFilter.rawValue)\ntcp=\(tcp)\nudp=\(udp)\n"
     }
 
     static func writeConfig(_ config: EngineConfig) throws {
@@ -143,6 +169,7 @@ nonisolated enum EngineService {
         try (config.discordUdp ? "1" : "0").write(to: EnginePaths.discordUdpFile, atomically: true, encoding: .utf8)
         try (config.blockQuic ? "1" : "0").write(to: EnginePaths.blockQuicFile, atomically: true, encoding: .utf8)
         try (config.fastKeepinit ? "1" : "0").write(to: EnginePaths.fastKeepinitFile, atomically: true, encoding: .utf8)
+        try gameFilterFileText(config).write(to: EnginePaths.gameFilterFile, atomically: true, encoding: .utf8)
     }
 
     static func readLists() -> [ListFile: String] {

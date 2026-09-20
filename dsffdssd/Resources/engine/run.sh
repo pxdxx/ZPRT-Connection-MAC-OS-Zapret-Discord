@@ -105,6 +105,7 @@ if [ -L "$DATA_ROOT/ipset-mode" ] || [ ! -f "$DATA_ROOT/ipset-mode" ]; then exit
 if [ -L "$DATA_ROOT/discord-udp" ]; then exit 1; fi
 if [ -L "$DATA_ROOT/block-quic" ]; then exit 1; fi
 if [ -L "$DATA_ROOT/fast-keepinit" ]; then exit 1; fi
+if [ -L "$DATA_ROOT/game-filter" ]; then exit 1; fi
 
 STRATEGY=$(/usr/bin/tr -d '[:space:]' <"$DATA_ROOT/selected-strategy" 2>/dev/null || true)
 if ! printf '%s\n' "$STRATEGY" | /usr/bin/grep -Eq '^general(-[a-z0-9]+)*$' || [ ! -f "$BASE/strategies/$STRATEGY.conf.in" ]; then
@@ -160,6 +161,43 @@ if [ -f "$DATA_ROOT/block-quic" ]; then
     BLOCK_QUIC=$(/usr/bin/tr -d '[:space:]' <"$DATA_ROOT/block-quic" 2>/dev/null || echo 1)
 fi
 
+# Game filter (Flowseal "Game Filter"): also run the bypass on high TCP/UDP ports.
+# It only ever touches IPs from the ipset, so it does nothing while the ipset is off.
+# Disabled ports are pinned to the dummy port 12 so the strategy's game blocks match nothing.
+valid_ports() {
+    [ "${#1}" -le 120 ] || return 1
+    printf '%s\n' "$1" | /usr/bin/grep -Eq '^[0-9]{1,5}(-[0-9]{1,5})?(,[0-9]{1,5}(-[0-9]{1,5})?)*$' || return 1
+    printf '%s\n' "$1" | /usr/bin/awk '{
+        n = split($0, parts, ",")
+        for (i = 1; i <= n; i++) {
+            m = split(parts[i], r, "-")
+            if (r[1] < 1 || r[m] > 65535 || r[1] + 0 > r[m] + 0) bad = 1
+        }
+    } END { exit bad }'
+}
+game_value() {
+    /usr/bin/awk -F= -v k="$1" '$1 == k { print $2; exit }' "$DATA_ROOT/game-filter" 2>/dev/null | /usr/bin/tr -d '[:space:]'
+}
+GAME_MODE=disabled
+GAME_TCP_PORTS=1024-65535
+GAME_UDP_PORTS=1024-65535
+if [ -f "$DATA_ROOT/game-filter" ]; then
+    GAME_MODE=$(game_value mode)
+    VALUE=$(game_value tcp)
+    if valid_ports "$VALUE"; then GAME_TCP_PORTS=$VALUE; fi
+    VALUE=$(game_value udp)
+    if valid_ports "$VALUE"; then GAME_UDP_PORTS=$VALUE; fi
+fi
+GAME_TCP=12
+GAME_UDP=12
+if [ "$IPSET_MODE" != none ]; then
+    case "$GAME_MODE" in
+        all) GAME_TCP=$GAME_TCP_PORTS; GAME_UDP=$GAME_UDP_PORTS ;;
+        tcp) GAME_TCP=$GAME_TCP_PORTS ;;
+        udp) GAME_UDP=$GAME_UDP_PORTS ;;
+    esac
+fi
+
 FAST_KEEPINIT=1
 if [ -f "$DATA_ROOT/fast-keepinit" ]; then
     FAST_KEEPINIT=$(/usr/bin/tr -d '[:space:]' <"$DATA_ROOT/fast-keepinit" 2>/dev/null || echo 1)
@@ -178,6 +216,7 @@ else
 fi
 
 /usr/bin/sed -e "s|@BASE@|$BASE|g" -e "s|@LISTS@|$RUNTIME_LISTS|g" -e "s|@IPSET@|$IPSET|g" \
+    -e "s|@GAME_TCP@|$GAME_TCP|g" -e "s|@GAME_UDP@|$GAME_UDP|g" \
     "$BASE/strategies/$STRATEGY.conf.in" >"$CONF_FILE"
 # Drop privileges after BPF/utun init (nfq opens devices before --user takes effect).
 /usr/bin/printf '\n--user=nobody\n' >>"$CONF_FILE"
@@ -210,7 +249,13 @@ if /sbin/pfctl -s info 2>/dev/null | /usr/bin/grep -q '^Status: Disabled'; then
 fi
 
 # Bind divert to physical WAN only so split-tunnel corp VPN (ppp0/utun) is untouched.
-TCP_RULE="pass out quick on $PHYSICAL_IFACE route-to (utun50 10.77.0.2) inet proto tcp from any to any port {80,443,2053,2083,2087,2096,8443} user { >root } no state"
+TCP_PORTS=80,443,2053,2083,2087,2096,8443
+if [ "$GAME_TCP" != 12 ]; then TCP_PORTS="$TCP_PORTS,$(printf '%s' "$GAME_TCP" | /usr/bin/tr - :)"; fi
+TCP_RULE="pass out quick on $PHYSICAL_IFACE route-to (utun50 10.77.0.2) inet proto tcp from any to any port {$TCP_PORTS} user { >root } no state"
+GAME_UDP_RULE=
+if [ "$GAME_UDP" != 12 ]; then
+    GAME_UDP_RULE="pass out quick on $PHYSICAL_IFACE route-to (utun50 10.77.0.2) inet proto udp from any to any port {$(printf '%s' "$GAME_UDP" | /usr/bin/tr - :)} user { >root } no state"
+fi
 QUIC_BLOCK="block drop out quick on $PHYSICAL_IFACE inet proto udp from any to any port 443 user { >root } no state"
 QUIC_DIVERT="pass out quick on $PHYSICAL_IFACE route-to (utun50 10.77.0.2) inet proto udp from any to any port 443 user { >root } no state"
 DISCORD_DIVERT="pass out quick on $PHYSICAL_IFACE route-to (utun50 10.77.0.2) inet proto udp from any to any port {19294:19344,50000:50100} user { >root } no state"
@@ -232,6 +277,8 @@ ALL_UDP_DIVERT="pass out quick on $PHYSICAL_IFACE route-to (utun50 10.77.0.2) in
             fi
             ;;
     esac
+    # After the QUIC/Discord rules so their (more specific) handling still wins.
+    if [ -n "$GAME_UDP_RULE" ]; then /bin/echo "$GAME_UDP_RULE"; fi
 } | /sbin/pfctl -a "$ANCHOR" -f -
 
 while kill -0 "$ENGINE_PID" 2>/dev/null; do

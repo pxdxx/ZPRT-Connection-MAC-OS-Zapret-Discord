@@ -67,7 +67,7 @@ struct SettingsView: View {
 
             AccentButton(
                 title: state.installed ? "Применить и перезапустить" : "Сохранить настройки",
-                enabled: editable
+                enabled: editable && draft.gamePortsValid
             ) {
                 Task {
                     await state.applyConfig(draft, lists: lists)
@@ -110,6 +110,8 @@ struct SettingsView: View {
                 }
             }
 
+            gameFilterBlock
+
             SwitchRow(
                 label: "Discord UDP порты",
                 description: "Голос Discord через PF",
@@ -131,6 +133,43 @@ struct SettingsView: View {
                 enabled: editable
             )
         }
+    }
+
+    private var gameFilterBlock: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("ИГРОВОЙ ФИЛЬТР")
+                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .foregroundStyle(palette.inkFaint)
+
+            ForEach(GameFilterMode.allCases) { mode in
+                ChoiceRow(label: mode.label, selected: draft.gameFilter == mode) {
+                    draft.gameFilter = mode
+                }
+            }
+
+            if draft.gameFilter.isEnabled {
+                Text("Обход на портах игр, только для IP из списка (при IP-списке «Выкл» не действует). Нагружает сеть; если игра перестала грузиться - выключите фильтр.")
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundStyle(palette.inkSoft)
+                    .padding(.leading, 4)
+            }
+
+            if draft.gameFilter.usesTcp {
+                LabeledField(label: "TCP порты", text: $draft.gameTcpPorts, mono: true, enabled: editable)
+                if !GameFilterMode.isValidPorts(draft.gameTcpPorts) { portsError }
+            }
+            if draft.gameFilter.usesUdp {
+                LabeledField(label: "UDP порты", text: $draft.gameUdpPorts, mono: true, enabled: editable)
+                if !GameFilterMode.isValidPorts(draft.gameUdpPorts) { portsError }
+            }
+        }
+    }
+
+    private var portsError: some View {
+        Text("Порты через запятую или диапазоны, 1-65535: 80,443,27000-27050")
+            .font(.system(size: 11, weight: .medium, design: .rounded))
+            .foregroundStyle(.red)
+            .padding(.leading, 4)
     }
 
     private var strategyPicker: some View {
