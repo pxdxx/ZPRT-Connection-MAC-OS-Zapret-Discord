@@ -11,6 +11,10 @@ VOL_NAME="ZPRT Connection"
 STAGE="$DIST/dmg-stage"
 
 echo "==> Building Release..."
+# Plain `xcodebuild build` (no -destination) silently builds active-arch-only
+# on the new build system, even though the project's ARCHS say "arm64 x86_64" -
+# that shipped arm64-only DMGs that just refuse to open on Intel Macs. Force
+# both explicitly so the result is an actual universal binary.
 xcodebuild \
   -project "$ROOT/dsffdssd.xcodeproj" \
   -scheme dsffdssd \
@@ -18,9 +22,18 @@ xcodebuild \
   -derivedDataPath "$DD" \
   CODE_SIGN_IDENTITY="-" \
   CODE_SIGNING_ALLOWED=YES \
+  ARCHS="arm64 x86_64" \
+  ONLY_ACTIVE_ARCH=NO \
   build
 
 test -d "$PRODUCT"
+
+echo "==> Verifying universal binary..."
+ARCHES="$(lipo -archs "$PRODUCT/Contents/MacOS/ZPRT Connection")"
+case "$ARCHES" in
+  *arm64*x86_64*|*x86_64*arm64*) ;;
+  *) echo "error: built binary is not universal (archs: $ARCHES)" >&2; exit 1 ;;
+esac
 
 echo "==> Staging DMG..."
 rm -rf "$DIST"

@@ -21,6 +21,8 @@ jobs:
             -derivedDataPath /tmp/ZPRTBuild \
             CODE_SIGN_IDENTITY="-" \
             CODE_SIGNING_ALLOWED=YES \
+            ARCHS="arm64 x86_64" \
+            ONLY_ACTIVE_ARCH=NO \
             build
 
       - name: Check app bundle
@@ -29,3 +31,10 @@ jobs:
           test -d "$APP"
           test -x "$APP/Contents/MacOS/ZPRT Connection"
           codesign --verify --deep --strict "$APP"
+          # Catches a plain `build` (no -destination) silently going active-arch-only,
+          # which shipped arm64-only DMGs that refuse to open on Intel Macs.
+          ARCHES="$(lipo -archs "$APP/Contents/MacOS/ZPRT Connection")"
+          case "$ARCHES" in
+            *arm64*x86_64*|*x86_64*arm64*) ;;
+            *) echo "::error::built binary is not universal (archs: $ARCHES)"; exit 1 ;;
+          esac
