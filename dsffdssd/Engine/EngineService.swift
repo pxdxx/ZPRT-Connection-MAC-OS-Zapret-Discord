@@ -191,9 +191,10 @@ nonisolated enum EngineService {
 
     static func defaultLists() -> [ListFile: String] {
         var result: [ListFile: String] = [:]
+        // Bundle first: the staging copy is only rebuilt on install and goes stale after an app update.
         let roots: [URL] = [
-            EngineBundle.stagingRoot.appendingPathComponent("default-lists"),
             Bundle.main.resourceURL,
+            EngineBundle.stagingRoot.appendingPathComponent("default-lists"),
         ].compactMap { $0 }
         for file in ListFile.allCases {
             var content = file.defaultContent

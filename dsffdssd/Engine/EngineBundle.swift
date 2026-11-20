@@ -8,6 +8,14 @@ nonisolated enum EngineBundle {
             .appendingPathComponent("Library/Application Support/Outpost/payload")
     }
 
+    /// App version + build; changes on every release that may ship new strategies or fakes.
+    static var bundledEngineVersion: String {
+        let info = Bundle.main.infoDictionary
+        let short = info?["CFBundleShortVersionString"] as? String ?? "0"
+        let build = info?["CFBundleVersion"] as? String ?? "0"
+        return "\(short) (\(build))"
+    }
+
     static func materialize() throws -> URL {
         let fm = FileManager.default
         guard let resources = Bundle.main.resourceURL else {
@@ -31,21 +39,23 @@ nonisolated enum EngineBundle {
             try copyIfExists(from: resources.appendingPathComponent(name), to: root.appendingPathComponent(name))
         }
 
-        let binFiles = [
-            "utunws",
-            "ACTIVE_DISCORD_UDP.bin",
-            "ACTIVE_GAME_UDP.bin",
-            "quic_initial_www_google_com.bin",
-            "quic_initial_4pda_to.bin",
-            "stun.bin", "stun2.bin",
-            "tls_clienthello_4pda_to.bin",
-            "tls_clienthello_max_ru.bin",
-            "tls_clienthello_sochi_park.bin",
-            "tls_clienthello_www_google_com.bin",
-        ]
-        for name in binFiles {
-            try copyIfExists(from: resources.appendingPathComponent(name), to: root.appendingPathComponent("bin/\(name)"))
+        // Copy every bundled fake payload instead of a hand-kept list: upstream
+        // rotates fakes (max_ru -> www_sferum_ru), and a missing .bin makes
+        // utunws fail to start on every strategy that references it.
+        try copyIfExists(from: resources.appendingPathComponent("utunws"), to: root.appendingPathComponent("bin/utunws"))
+        if let items = try? fm.contentsOfDirectory(atPath: resources.path) {
+            for name in items where name.hasSuffix(".bin") {
+                try copyIfExists(from: resources.appendingPathComponent(name), to: root.appendingPathComponent("bin/\(name)"))
+            }
         }
+
+        // Installed copy of this marker tells the app whether /Library/.../Zapret
+        // still runs strategies/fakes from an older app version.
+        try bundledEngineVersion.write(
+            to: root.appendingPathComponent(EnginePaths.engineVersionFileName),
+            atomically: true,
+            encoding: .utf8
+        )
 
         let lists = [
             "ipset-all.txt", "ipset-exclude-user.txt", "ipset-exclude.txt",

@@ -107,6 +107,7 @@ final class AppState {
         refreshIpsetCount()
         passwordless = UserDefaults.standard.object(forKey: "zprt.passwordless") as? Bool ?? true
         refreshStatus()
+        Task { await upgradeEngineIfOutdated() }
         pollTask?.cancel()
         pollTask = Task {
             while !Task.isCancelled {
@@ -177,6 +178,11 @@ final class AppState {
         guard busy == nil else { return }
         if !installed {
             await installEngine()
+            return
+        }
+        if !running, await Task.detached(operation: { EnginePaths.isEngineOutdated }).value {
+            // restart.sh would just relaunch the old strategies/fakes from /Library.
+            await upgradeEngine()
             return
         }
         if running {
@@ -260,6 +266,50 @@ final class AppState {
         }
         refreshStatus()
         notifyTray()
+    }
+
+    /// Re-runs install.sh after an app update so the system copy picks up the new
+    /// strategies, fake payloads and scripts. Keeps the user's config and lists.
+    func upgradeEngine() async {
+        guard busy == nil else { return }
+        busy = "Обновление движка…"
+        notifyTray()
+        let nopass = passwordless
+        let cfg = config
+        let lists = listContents
+        let result = await Task.detached {
+            do {
+                try EngineService.writeConfig(cfg)
+                try EngineService.writeLists(lists)
+                return try EngineService.install(passwordless: nopass)
+            } catch let error as EngineError {
+                return CommandResult(ok: false, output: error.errorDescription ?? "error")
+            } catch {
+                return CommandResult(ok: false, output: error.localizedDescription)
+            }
+        }.value
+        busy = nil
+        if result.ok {
+            installed = true
+            running = true
+            startedAt = Date()
+            powerPulse += 1
+            pushNotice("Движок обновлён до \(appVersion)")
+        } else {
+            let message = result.lastLine.isEmpty ? result.output : result.lastLine
+            pushNotice(message.isEmpty ? "Обновление движка отменено — выключите и снова включите обход, чтобы повторить" : message, error: true)
+        }
+        refreshStatus()
+        notifyTray()
+    }
+
+    /// A running engine from an older app version keeps using stale fakes that DPI
+    /// already detects, so upgrade it right away instead of waiting for GO.
+    private func upgradeEngineIfOutdated() async {
+        let outdatedAndRunning = await Task.detached {
+            EnginePaths.isEngineOutdated && EnginePaths.isRunning
+        }.value
+        if outdatedAndRunning { await upgradeEngine() }
     }
 
     func installEngine() async {

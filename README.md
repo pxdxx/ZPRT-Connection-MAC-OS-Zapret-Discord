@@ -41,7 +41,7 @@
 
 - **Установка одним нажатием.** Кнопка **GO** ставит и запускает движок, пароль администратора нужен один раз.
 - **Discord из коробки.** Домены Discord уже в списке, голос (UDP-порты) включён по умолчанию, стратегия `general-simple-fake`.
-- **21 стратегия обхода** из [Flowseal/zapret-discord-youtube](https://github.com/Flowseal/zapret-discord-youtube), от `general` до `ALT13`. Списки доменов и IP синхронизированы с апстримом.
+- **22 стратегии обхода** из [Flowseal/zapret-discord-youtube](https://github.com/Flowseal/zapret-discord-youtube), от `general` до `ALT13`. Списки доменов и IP синхронизированы с апстримом.
 - **Быстрое добавление платформ.** YouTube, Instagram, Facebook, X, LinkedIn, Pinterest, Twitch, Spotify, WhatsApp, Signal, TikTok, Viber, Notion с фирменными иконками. Домены добавляются к вашему списку, ничего не стирая, повторный клик убирает их.
 - **Свои домены** и режимы IP-списков (пакетный, расширенный, выключен).
 - **Discord UDP и блокировка QUIC** включаются переключателями.

@@ -48,6 +48,22 @@ nonisolated enum EnginePaths {
         return hasBinary && (hasPlist || hasRun)
     }
 
+    static let engineVersionFileName = "engine-version"
+
+    /// Version of the app that last ran install.sh; nil for installs made
+    /// before the marker existed (those are outdated by definition).
+    static var installedEngineVersion: String? {
+        let url = systemRoot.appendingPathComponent(engineVersionFileName)
+        return (try? String(contentsOf: url, encoding: .utf8))?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// install.sh copies strategies, fakes and scripts into /Library only once,
+    /// so an app update alone never reaches the running engine.
+    static var isEngineOutdated: Bool {
+        isInstalled && installedEngineVersion != EngineBundle.bundledEngineVersion
+    }
+
     static var isRunning: Bool {
         // Prefer utun50 (created by utunws when healthy); fall back to launchd state.
         if ifconfigExists("utun50") { return true }
